@@ -1,0 +1,107 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools==78.1",
+  "setuptools-scm==8.2",
+]
+
+[project]
+name = "certwrangler"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dynamic = [
+  "version",
+]
+dependencies = [
+  "acme==3.3",
+  "click==8.1.8",
+  "dns-lexicon==3.20.1",
+  "dnspython==2.7",
+  "edgegrid-python==2",
+  "hvac==2.3",
+  "importlib-metadata==8.6.1",
+  "prometheus-client==0.21.1",
+  "pydantic[email]==2.11.1",
+  "pyyaml==6.0.2",
+  "starlette==0.46.1",
+  "uvicorn==0.34",
+]
+optional-dependencies.dev = [
+  "black==25.1",
+  "coverage==7.8",
+  "ipython==8.18.1",
+  "mypy==1.15",
+  "pre-commit==4.2",
+  "pytest==8.3.5",
+  "pytest-asyncio==0.26",
+  "pytest-mock==3.14",
+  "requests-mock==1.12.1",
+  "tox==4.25",
+  "types-pyyaml==6.0.12.20250402",
+  "types-requests==2.32.0.20250328",
+]
+optional-dependencies.docs = [
+  "autodoc-pydantic[erdantic]",
+  "myst-parser",
+  "sphinx",
+  "sphinx-book-theme",
+  "sphinx-click",
+  "sphinx-copybutton",
+  "sphinx-togglebutton",
+  "sphinxcontrib-apidoc",
+]
+
+urls.Documentation = "https://linode.github.io/certwrangler"
+urls.Homepage = "https://github.com/linode/certwrangler"
+urls.Repository = "https://github.com/linode/certwrangler.git"
+
+scripts.certwrangler = "certwrangler.shell:main"
+
+entry-points."certwrangler.solver".dummy = "certwrangler.solvers.dummy:DummySolver"
+entry-points."certwrangler.solver".edgedns = "certwrangler.solvers.edgedns:EdgeDNSSolver"
+entry-points."certwrangler.solver".lexicon = "certwrangler.solvers.lexicon:LexiconSolver"
+
+entry-points."certwrangler.state_manager".dummy = "certwrangler.state_managers.dummy:DummyStateManager"
+entry-points."certwrangler.state_manager".local = "certwrangler.state_managers.local:LocalStateManager"
+
+entry-points."certwrangler.store".dummy = "certwrangler.stores.dummy:DummyStore"
+entry-points."certwrangler.store".local = "certwrangler.stores.local:LocalStore"
+entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
+
+[tool.setuptools_scm]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.mypy]
+files = [
+  "src/certwrangler",
+]
+exclude = [
+  "tests/",
+]
+plugins = [
+  "pydantic.mypy",
+]
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true

@@ -1,0 +1,38 @@
+---
+
+state:
+  driver: dummy
+
+accounts:
+  test_account:
+    emails:
+      - dummy_account@example.com
+    server: https://acme-staging-v02.api.example.com/directory
+
+subjects:
+  test_subject:
+    country: US
+    state_or_province: DevLandia
+    locality: Dev Town
+    organization: Example Org
+    organizational_unit: DevOps
+
+stores:
+  test_store:
+    driver: dummy
+
+solvers:
+  test_solver:
+    driver: dummy
+    zones:
+      - example.com
+
+certs:
+  test_cert:
+    account_name: test_account
+    subject_name: test_subject
+    store_names:
+      - test_store
+    common_name: example.com
+    alt_names:
+      - www.example.com

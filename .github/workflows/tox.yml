@@ -1,0 +1,60 @@
+name: tox
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Python ${{ matrix.python }} ${{ matrix.tox }}"
+    container: python:${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {python: '3.13', tox: test}
+          - {python: '3.12', tox: test}
+          - {python: '3.11', tox: test}
+          - {python: '3.10', tox: test}
+          - {python: '3.9', tox: test}
+          - {python: '3.9', tox: type}
+          - {python: '3.9', tox: style}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Git config
+        run: git config --system --add safe.directory /__w/certwrangler/certwrangler
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox
+      - name: Run tox
+        run: tox run -e ${{ matrix.tox }}
+  # Taken from https://brunoscheufler.com/blog/2022-04-09-the-required-github-status-check-that-wasnt
+  test-success:
+    name: "Python Tests Successful"
+    needs: test
+    if: success() # only run when all tests have passed
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
+    steps:
+      - id: setoutput
+        run: echo "success=true" >> $GITHUB_OUTPUT
+  test-rollup-result:
+    name: "Roll-up Test Results"
+    if: always() # always run, so we never skip the check
+    needs: [test, test-success]
+    steps:
+      - run: |
+          passed="${{ needs.test-success.outputs.success }}"
+          if [[ $passed == "true" ]]; then
+            echo "All tests passed"
+            exit 0
+          else
+            echo "Tests failed"
+            exit 1
+          fi

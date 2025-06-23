@@ -1,0 +1,36 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    },
+    "editor.formatOnSave": true,
+    "cSpell.words": [
+        "authzr",
+        "certbot",
+        "certwrangler",
+        "chall",
+        "cnames",
+        "dataclass",
+        "dnspython",
+        "edgedns",
+        "edgegrid",
+        "encryptor",
+        "Fernet",
+        "fullchain",
+        "hvac",
+        "ipapp",
+        "josepy",
+        "JWKRSA",
+        "levelname",
+        "nameserver",
+        "NXDOMAIN",
+        "pydantic",
+        "Rdata",
+        "rdatatype",
+        "rdtype",
+        "secho",
+        "SIGHUP"
+    ],
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true
+}

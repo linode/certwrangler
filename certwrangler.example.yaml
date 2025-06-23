@@ -1,0 +1,132 @@
+---
+
+# Certwrangler's config file.
+
+# Text beginning with a dollar sign will be filled in from environment variables.
+# If you need a literal dollar sign you must prefix the dollar sign with an additional
+# dollar sign, example: $$
+# Note that commented out examples will use double dollar signs, you will need to remove
+# the extra dollar sign if you uncomment it.
+
+# Default options for running in daemon mode
+
+# daemon:
+#   reconciler:
+#     # Sleep interval for the reconciler loop.
+#     interval: 60
+#   metrics:
+#     # The path where metrics will be exported on the http server.
+#     mount: /metrics
+#   http:
+#     # Configuration for the http server.
+#     host: 127.0.0.1
+#     port: 6377
+#     server_name: certwrangler
+#     # Both the ssl_key_file and ssl_cert_file must be set together,
+#     # one cannot be empty if the other is provided.
+#     ssl_key_file: null
+#     ssl_key_password: null
+#     ssl_cert_file: null
+#     ssl_ca_certs_file: null
+#   # How often the daemon checks the health of its threads in seconds.
+#   watchdog_interval: 30
+
+state:
+  driver: local
+  # This defaults to $${XDG_DATA_HOME}/certwrangler, but the path can be supplied to change this:
+
+  # path: ./test_state
+
+  # To enable encryption of the state you can run 'certwrangler state generate-key' and supply
+  # the resulting key as the first item in the encryption_keys list:
+
+  # encryption_keys:
+  #   - example_key
+
+accounts:
+  default:
+    emails:
+      - this.is.me@example.com
+    # This example is set to the staging environment for testing.
+    # The default value is the Let's Encrypt production endpoint.
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    key_size: 4096
+
+subjects:
+  # This feature can probably be removed, Let's Encrypt doesn't bother with using them.
+  default:
+    country: US
+    state_or_province: DevLandia
+    locality: Dev Town
+    organization: Example Org
+    organizational_unit: DevOps
+
+stores:
+  # Example vault store.
+  default:
+    driver: vault
+    # The vault store defaults to KV version 2.
+    # Version 1 can by used by supplying:
+
+    # version: 1
+
+    server: http://localhost:8200
+    mount_point: secret
+    path: certwrangler
+    auth:
+      method: approle
+      role_id: example_role_id
+      secret_id: $CERTWRANGLER_SECRET_ID
+    # Token auth is also supported like so:
+
+    # auth:
+    #   method: token
+    #   token: $$VAULT_TOKEN
+
+  # An example local store for backing up our cert and keys
+  backup:
+    driver: local
+    path: ./test_store
+
+solvers:
+  default:
+    driver: lexicon
+    zones:
+      # List out the zones that this solver should be used for.
+      # This should only be zones, as in an SOA record exists for this FQDN.
+      - example.com
+    provider_name: linode4
+    provider_options:
+      # This will pull the token from the LINODE_TOKEN environment variable
+      auth_token: $LINODE_TOKEN
+
+  # An example using the edgedns solver
+
+  # akamai:
+  #   driver: edgedns
+  #   zones:
+  #     - example.com
+  #   host: akaa-WWWWWWWWWWWW.luna.akamaiapis.ne
+  #   client_token: $$CERTWRANGLER_EDGE_CLIENT_TOKEN
+  #   client_secret: $$CERTWRANGLER_EDGE_CLIENT_SECRET
+  #   access_token: $$CERTWRANGLER_EDGE_ACCESS_TOKEN
+
+certs:
+  example.com:
+    account_name: default
+    subject_name: default
+    store_names:
+      - default
+      - backup
+    # By default, a cert will be published at a path named after the cert ex:
+    # salt/shared/foo/example.com. Setting 'store_key' allows specifing an arbitrary
+    # string for its path, ex salt/shared/foo/bar
+    # store_key: bar
+    common_name: example.com
+    alt_names:
+      - www.example.com
+    key_size: 4096
+    # The timeout for waiting for DNS propagation.
+    # If this expires certwrangler gives up on waiting
+    # but leaves the order open to try again on the next run.
+    wait_timeout: 120
