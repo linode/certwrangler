@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     name: "Python ${{ matrix.python }} ${{ matrix.tox }}"
     container: python:${{ matrix.python }}
     strategy:
@@ -36,6 +37,7 @@ jobs:
         run: tox run -e ${{ matrix.tox }}
   # Taken from https://brunoscheufler.com/blog/2022-04-09-the-required-github-status-check-that-wasnt
   test-success:
+    runs-on: ubuntu-latest
     name: "Python Tests Successful"
     needs: test
     if: success() # only run when all tests have passed
@@ -45,6 +47,7 @@ jobs:
       - id: setoutput
         run: echo "success=true" >> $GITHUB_OUTPUT
   test-rollup-result:
+    runs-on: ubuntu-latest
     name: "Roll-up Test Results"
     if: always() # always run, so we never skip the check
     needs: [test, test-success]

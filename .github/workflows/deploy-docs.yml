@@ -18,6 +18,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-docs.yml
   deploy:
+    runs-on: ubuntu-latest
     name: Deploy Docs
     environment:
       name: github-pages

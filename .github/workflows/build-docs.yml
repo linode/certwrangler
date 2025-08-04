@@ -5,6 +5,7 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     name: Build Docs
     container: python:3.12
     steps:
