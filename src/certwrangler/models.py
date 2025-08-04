@@ -364,15 +364,15 @@ class Subject(NamedModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    country: Optional[CountryNameOID] = Field(None, description="The country name OID.") # type: ignore
-    state_or_province: Optional[StateOrProvinceOID] = Field( # type: ignore
+    country: Optional[CountryNameOID] = Field(None, description="The country name OID.")  # type: ignore
+    state_or_province: Optional[StateOrProvinceOID] = Field(  # type: ignore
         None, description="The state or province OID."
     )
-    locality: Optional[LocalityOID] = Field(None, description="The locality OID.") # type: ignore
-    organization: Optional[OrganizationOID] = Field( # type: ignore
+    locality: Optional[LocalityOID] = Field(None, description="The locality OID.")  # type: ignore
+    organization: Optional[OrganizationOID] = Field(  # type: ignore
         None, description="The organization OID."
     )
-    organizational_unit: Optional[OrganizationalUnitOID] = Field( # type: ignore
+    organizational_unit: Optional[OrganizationalUnitOID] = Field(  # type: ignore
         None, description="The organizational unit OID."
     )
 
