@@ -37,15 +37,20 @@ dependencies = [
   "starlette>=0.46.1",
   "uvicorn>=0.34",
 ]
+
 urls.Documentation = "https://linode.github.io/certwrangler"
 urls.Homepage = "https://github.com/linode/certwrangler"
 urls.Repository = "https://github.com/linode/certwrangler.git"
+
 scripts.certwrangler = "certwrangler.shell:main"
+
 entry-points."certwrangler.solver".dummy = "certwrangler.solvers.dummy:DummySolver"
 entry-points."certwrangler.solver".edgedns = "certwrangler.solvers.edgedns:EdgeDNSSolver"
 entry-points."certwrangler.solver".lexicon = "certwrangler.solvers.lexicon:LexiconSolver"
+
 entry-points."certwrangler.state_manager".dummy = "certwrangler.state_managers.dummy:DummyStateManager"
 entry-points."certwrangler.state_manager".local = "certwrangler.state_managers.local:LocalStateManager"
+
 entry-points."certwrangler.store".dummy = "certwrangler.stores.dummy:DummyStore"
 entry-points."certwrangler.store".local = "certwrangler.stores.local:LocalStore"
 entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
@@ -135,16 +140,19 @@ env_list = [
   "style",
   "typing",
 ]
+
 [tool.tox.env.style]
 description = "Run all pre-commit hooks on all files"
 dependency_groups = [ "pre-commit" ]
 skip_install = true
 commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure" ] ]
+
 [tool.tox.env.typing]
 description = "Run static type checkers"
 dependency_groups = [ "typing" ]
 skip_install = true
 commands = [ [ "mypy" ] ]
+
 [tool.tox.env_run_base]
 default_base_python = "3.9"
 description = "Run unit tests and generate coverage report"
