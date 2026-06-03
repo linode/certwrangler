@@ -2,25 +2,44 @@
 
 ## Installation
 
-Create a virtual environment, clone the repo, then install with:
+This project is managed by `uv`, which can be installed through [these instructions](https://docs.astral.sh/uv/getting-started/installation/).
+
+The dev dependencies can be installed like so:
 
 ```
-pip install -e .[dev]
+uv sync
 ```
+
+This will create a virtual environment under `.venv` that you can optionally activate like so:
+
+```
+. .venv/bin/activate
+```
+
+Alternatively, you can prefix your commands with `uv run`, example: `uv run certwrangler --help`.
 
 Then copy `certwrangler.example.yaml` to `~/.config/certwrangler.yaml` and fill it out with your info.
 
-Pip will also install the `certwrangler` CLI utility, more information about the CLI can be found here: {doc}`/usage/cli`
+The `certwrangler` CLI utility will be installed in the virtual environment, more information about the CLI can be found here: {doc}`/usage/cli`
+
+## Pre-commit
+
+This project uses [pre-commit](https://pre-commit.com/) to enforce style and typing standards on the code. To setup `pre-commit` to run before each commit, run the following:
+
+```
+uv run pre-commit install --install-hooks
+```
 
 ## Dev shell
 
-If you installed with the `[dev]` extras then you'll also have access to the `dev-shell` sub-command. This provides you with an IPython environment pre-loaded with the various certwrangler modules loaded, which is helpful for playing around with the various types to test out changes:
+If certwrangler is installed with the `[dev]` extras (the default with installation through `uv`) then you'll also have access to the `dev-shell` sub-command. This provides you with an IPython environment pre-loaded with the various certwrangler modules loaded, which is helpful for playing around with the various types to test out changes:
 
 ```
-$ certwrangler dev-shell
+$ uv run certwrangler dev-shell
+2026-06-02 15:23:16,490: INFO [certwrangler.utils, load_config(), line 128, thread MainThread] - Loading config from /home/<username>/.config/certwrangler.yaml
+2026-06-02 15:23:16,587: INFO [certwrangler.utils, load_config(), line 151, thread MainThread] - Config loaded from '/home/<username>/.config/certwrangler.yaml'.
 Welcome to certwrangler's development shell!
-  Python 3.8.10 (default, Nov 22 2023, 10:22:35)
-[GCC 9.4.0] on linux.
+  Python 3.13.13 (main, May 10 2026, 19:26:54) [Clang 22.1.3 ] on linux.
 Loaded certwrangler variables:
   ctx
   config
@@ -30,6 +49,7 @@ Loaded certwrangler variables:
   reconcilers
 Config loaded but not initialized, initialize with:
   config.initialize()
+Tip: You can use Ctrl-O to force a new line in terminal IPython
 
 In [1]:
 ```
@@ -42,25 +62,19 @@ In [1]:
 
 ```console
 ./
-├── debian/                    <- Debian packaging
-├── docs/                      <- Docs
 ├── .github/                   <- GitHub Actions
+├── .vscode/
+├── docs/                      <- Docs
 ├── script/                    <- Scripts used in packaging
 ├── src/                       <- The certwrangler python module
 ├── tests/                     <- Tests
-├── .vscode/
-├── certwrangler.example.yaml  <- Example config file
-├── Dockerfile
-├── .flake8
-├── .gitchangelog.debian.rc
-├── .gitchangelog.debian.tpl
 ├── .gitignore
-├── Jenkinsfile
 ├── .pre-commit-config.yaml
+├── certwrangler.example.yaml  <- Example config file
+├── LICENSE
 ├── pyproject.toml
 ├── README.md
-├── setup.py
-└── tox.ini
+└── uv.lock
 ```
 
 ### Code layout

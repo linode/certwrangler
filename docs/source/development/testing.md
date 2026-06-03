@@ -16,13 +16,13 @@ We use tox as our test runner. We have three different test suites configured in
  You can run the full suite of tests like so:
 
 ```shell
-tox
+uv run tox
 ```
 
 Or target specific test suites with `-e`:
 
 ```shell
-tox -e style
+uv run tox -e style
 ```
 
 ## Style checks
@@ -30,7 +30,7 @@ tox -e style
 All style checks are implemented through [pre-commit](https://pre-commit.com/). It is recommended to setup pre-commit locally so that style checks run automatically when making a commit, this can be done like so:
 
 ```shell
-pre-commit install
+uv run pre-commit install
 ```
 
 ## Type checks

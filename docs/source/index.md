@@ -19,5 +19,6 @@ development/getting_started.md
 development/architecture.md
 development/metrics.md
 development/testing.md
+development/docs.md
 development/api.md
 ```

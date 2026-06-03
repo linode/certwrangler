@@ -5,7 +5,7 @@ requires = [ "hatch-vcs", "hatchling" ]
 [project]
 name = "certwrangler"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.14" # Some tests are failing on 3.14, limit for now.
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: System Administrators",
@@ -71,6 +71,9 @@ docs = [
   "sphinx-copybutton",
   "sphinx-togglebutton",
   "sphinxcontrib-apidoc",
+]
+docs-auto = [
+  "sphinx-autobuild",
 ]
 pre-commit = [
   "pre-commit",
@@ -141,20 +144,31 @@ env_list = [
   "typing",
 ]
 
+[tool.tox.env.docs]
+description = "Build docs"
+dependency_groups = [ "docs" ]
+commands = [ [ "sphinx-build", "-E", "-b", "dirhtml", "docs/source", "docs/build/dirhtml" ] ]
+
+[tool.tox.env.docs-auto]
+description = "Continuously rebuild docs and start a local server"
+dependency_groups = [ "docs", "docs-auto" ]
+commands = [ [ "sphinx-autobuild", "-E", "-b", "dirhtml", "--watch", "src", "docs/source", "docs/build/dirhtml" ] ]
+
 [tool.tox.env.style]
+base_python = "3.9"
 description = "Run all pre-commit hooks on all files"
 dependency_groups = [ "pre-commit" ]
 skip_install = true
 commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure" ] ]
 
 [tool.tox.env.typing]
+base_python = "3.9"
 description = "Run static type checkers"
 dependency_groups = [ "typing" ]
 skip_install = true
 commands = [ [ "mypy" ] ]
 
 [tool.tox.env_run_base]
-default_base_python = "3.9"
 description = "Run unit tests and generate coverage report"
 runner = "uv-venv-lock-runner"
 dependency_groups = [ "tests" ]
@@ -181,7 +195,7 @@ check_untyped_defs = true
 disallow_untyped_defs = true
 
 [tool.uv]
-default-groups = [ "dev", "pre-commit", "tests", "typing" ]
+default-groups = [ "dev", "pre-commit" ]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
