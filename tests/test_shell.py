@@ -13,7 +13,8 @@ def test_cli_initialization():
     Invoke the cli without arguments & options and ensure it runs successfully.
     """
     outcome = CliRunner().invoke(cli)
-    assert outcome.exit_code == 0
+    # Running without args exits 2 after click 8.2
+    assert outcome.exit_code == 2
     assert "The certwrangler management cli." in outcome.output
 
 

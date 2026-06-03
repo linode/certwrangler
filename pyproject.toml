@@ -5,13 +5,12 @@ requires = [ "hatch-vcs", "hatchling" ]
 [project]
 name = "certwrangler"
 readme = "README.md"
-requires-python = ">=3.9,<3.14" # Some tests are failing on 3.14, limit for now.
+requires-python = ">=3.10,<3.14" # Some tests are failing on 3.14, limit for now.
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: System Administrators",
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -25,7 +24,7 @@ classifiers = [
 dynamic = [ "version" ]
 dependencies = [
   "acme>=3.3",
-  "click>=8.1.8,<8.2",         # 8.2.0 introduces a change that breaks current tests.
+  "click>=8.2",
   "dns-lexicon>=3.20.1",
   "dnspython>=2.7",
   "edgegrid-python>=2",
@@ -34,7 +33,7 @@ dependencies = [
   "prometheus-client>=0.21.1",
   "pydantic[email]>=2.11.1",
   "pyyaml>=6.0.2",
-  "starlette>=0.46.1",
+  "starlette>=1.0.1",
   "uvicorn>=0.34",
 ]
 
@@ -114,7 +113,8 @@ lint.select = [
   "F",   # pyflakes
   "I",   # isort
   "SIM", # flake8-simplify
-  # "UP",  # pyupgrade - enable after dropping python 3.9.
+  # TODO: enable after dropping python 3.9 in a new PR.
+  # "UP",  # pyupgrade
   "W", # pycodestyle warning
 ]
 lint.ignore = [ "E501" ]
@@ -144,7 +144,6 @@ env_list = [
   "py3.12",
   "py3.11",
   "py3.10",
-  "py3.9",
   "style",
   "typing",
 ]
@@ -160,14 +159,12 @@ dependency_groups = [ "docs", "docs-auto" ]
 commands = [ [ "sphinx-autobuild", "-E", "-b", "html", "--watch", "src", "docs/source", "docs/build/html" ] ]
 
 [tool.tox.env.style]
-base_python = "3.9"
 description = "Run all pre-commit hooks on all files"
 dependency_groups = [ "pre-commit" ]
 skip_install = true
 commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure" ] ]
 
 [tool.tox.env.typing]
-base_python = "3.9"
 description = "Run static type checkers"
 dependency_groups = [ "typing" ]
 skip_install = true
