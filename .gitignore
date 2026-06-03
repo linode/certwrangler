@@ -65,6 +65,10 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
 
 # Translations
 *.mo
@@ -89,3 +93,7 @@ target/
 
 #pyenv
 venv
+
+# uv and ruff
+.venv/
+.ruff_cache/
