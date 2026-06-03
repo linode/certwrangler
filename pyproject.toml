@@ -1,54 +1,59 @@
 [build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-  "setuptools==78.1",
-  "setuptools-scm==8.2",
-]
+build-backend = "hatchling.build"
+requires = [ "hatch-vcs", "hatchling" ]
 
 [project]
 name = "certwrangler"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+  "Topic :: System :: Systems Administration",
 ]
-dynamic = [
-  "version",
-]
+dynamic = [ "version" ]
 dependencies = [
-  "acme==3.3",
-  "click==8.1.8",
-  "dns-lexicon==3.20.1",
-  "dnspython==2.7",
-  "edgegrid-python==2",
-  "hvac==2.3",
-  "importlib-metadata==8.6.1",
-  "prometheus-client==0.21.1",
-  "pydantic[email]==2.11.1",
-  "pyyaml==6.0.2",
-  "starlette==0.46.1",
-  "uvicorn==0.34",
+  "acme>=3.3",
+  "click>=8.1.8,<8.2",         # 8.2.0 introduces a change that breaks current tests.
+  "dns-lexicon>=3.20.1",
+  "dnspython>=2.7",
+  "edgegrid-python>=2",
+  "hvac>=2.3",
+  "importlib-metadata>=8.6.1",
+  "prometheus-client>=0.21.1",
+  "pydantic[email]>=2.11.1",
+  "pyyaml>=6.0.2",
+  "starlette>=0.46.1",
+  "uvicorn>=0.34",
 ]
-optional-dependencies.dev = [
-  "black==25.1",
-  "coverage==7.8",
-  "ipython==8.18.1",
-  "mypy==1.15",
-  "pre-commit==4.2",
-  "pytest==8.3.5",
-  "pytest-asyncio==0.26",
-  "pytest-mock==3.14",
-  "requests-mock==1.12.1",
-  "tox==4.25",
-  "types-pyyaml==6.0.12.20250402",
-  "types-requests==2.32.0.20250328",
+urls.Documentation = "https://linode.github.io/certwrangler"
+urls.Homepage = "https://github.com/linode/certwrangler"
+urls.Repository = "https://github.com/linode/certwrangler.git"
+scripts.certwrangler = "certwrangler.shell:main"
+entry-points."certwrangler.solver".dummy = "certwrangler.solvers.dummy:DummySolver"
+entry-points."certwrangler.solver".edgedns = "certwrangler.solvers.edgedns:EdgeDNSSolver"
+entry-points."certwrangler.solver".lexicon = "certwrangler.solvers.lexicon:LexiconSolver"
+entry-points."certwrangler.state_manager".dummy = "certwrangler.state_managers.dummy:DummyStateManager"
+entry-points."certwrangler.state_manager".local = "certwrangler.state_managers.local:LocalStateManager"
+entry-points."certwrangler.store".dummy = "certwrangler.stores.dummy:DummyStore"
+entry-points."certwrangler.store".local = "certwrangler.stores.local:LocalStore"
+entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
+
+[dependency-groups]
+dev = [
+  "ipython",
+  "tox",
+  "tox-uv",
 ]
-optional-dependencies.docs = [
+docs = [
   "autodoc-pydantic[erdantic]",
   "myst-parser",
   "sphinx",
@@ -58,31 +63,79 @@ optional-dependencies.docs = [
   "sphinx-togglebutton",
   "sphinxcontrib-apidoc",
 ]
+pre-commit = [
+  "pre-commit",
+  "pre-commit-uv",
+]
+tests = [
+  "coverage",
+  "ipython",
+  "pytest",
+  "pytest-asyncio",
+  "pytest-mock",
+  "requests-mock",
+]
+typing = [
+  "ipython",
+  "mypy",
+  "types-pyyaml",
+  "types-requests",
+]
 
-urls.Documentation = "https://linode.github.io/certwrangler"
-urls.Homepage = "https://github.com/linode/certwrangler"
-urls.Repository = "https://github.com/linode/certwrangler.git"
-
-scripts.certwrangler = "certwrangler.shell:main"
-
-entry-points."certwrangler.solver".dummy = "certwrangler.solvers.dummy:DummySolver"
-entry-points."certwrangler.solver".edgedns = "certwrangler.solvers.edgedns:EdgeDNSSolver"
-entry-points."certwrangler.solver".lexicon = "certwrangler.solvers.lexicon:LexiconSolver"
-
-entry-points."certwrangler.state_manager".dummy = "certwrangler.state_managers.dummy:DummyStateManager"
-entry-points."certwrangler.state_manager".local = "certwrangler.state_managers.local:LocalStateManager"
-
-entry-points."certwrangler.store".dummy = "certwrangler.stores.dummy:DummyStore"
-entry-points."certwrangler.store".local = "certwrangler.stores.local:LocalStore"
-entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
-
-[tool.setuptools_scm]
+[tool.hatch.version]
+source = "vcs"
 
 [tool.isort]
 profile = "black"
 
+[tool.pyproject-fmt]
+max_supported_python = "3.13"
+table_format = "long"
+
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = [
+  "src",
+]
+
+[tool.coverage.report]
+include = [
+  "src/*",
+]
+show_missing = true
+skip_covered = true
+
+[tool.tox]
+env_list = [
+  "py3.13",
+  "py3.12",
+  "py3.11",
+  "py3.10",
+  "py3.9",
+  "style",
+  "typing",
+]
+[tool.tox.env.style]
+description = "Run all pre-commit hooks on all files"
+dependency_groups = [ "pre-commit" ]
+skip_install = true
+commands = [ [ "pre-commit", "run", "--all-files", "--show-diff-on-failure" ] ]
+[tool.tox.env.typing]
+description = "Run static type checkers"
+dependency_groups = [ "typing" ]
+skip_install = true
+commands = [ [ "mypy" ] ]
+[tool.tox.env_run_base]
+default_base_python = "3.9"
+description = "Run unit tests and generate coverage report"
+runner = "uv-venv-lock-runner"
+dependency_groups = [ "tests" ]
+commands = [
+  [ "coverage", "run", "-m", "pytest", "-vv", "tests/" ],
+  [ "coverage", "report", "-m" ],
+]
 
 [tool.mypy]
 files = [
@@ -100,6 +153,9 @@ warn_unused_ignores = true
 disallow_any_generics = true
 check_untyped_defs = true
 disallow_untyped_defs = true
+
+[tool.uv]
+default-groups = [ "dev", "pre-commit", "tests", "typing" ]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
