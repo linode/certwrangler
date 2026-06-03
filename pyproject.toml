@@ -59,8 +59,6 @@ entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
 dev = [
   "ipython",
   "ruff",
-  "tox",
-  "tox-uv",
 ]
 docs = [
   "autodoc-pydantic[erdantic]",
@@ -75,6 +73,9 @@ docs = [
 docs-auto = [
   "sphinx-autobuild",
 ]
+gha-update = [
+  "gha-update; python_full_version>='3.12'",
+]
 pre-commit = [
   "pre-commit",
   "pre-commit-uv",
@@ -86,6 +87,10 @@ tests = [
   "pytest-asyncio",
   "pytest-mock",
   "requests-mock",
+]
+tox = [
+  "tox",
+  "tox-uv",
 ]
 typing = [
   "ipython",
@@ -147,12 +152,12 @@ env_list = [
 [tool.tox.env.docs]
 description = "Build docs"
 dependency_groups = [ "docs" ]
-commands = [ [ "sphinx-build", "-E", "-b", "dirhtml", "docs/source", "docs/build/dirhtml" ] ]
+commands = [ [ "sphinx-build", "-E", "-b", "html", "docs/source", "docs/build/html" ] ]
 
 [tool.tox.env.docs-auto]
 description = "Continuously rebuild docs and start a local server"
 dependency_groups = [ "docs", "docs-auto" ]
-commands = [ [ "sphinx-autobuild", "-E", "-b", "dirhtml", "--watch", "src", "docs/source", "docs/build/dirhtml" ] ]
+commands = [ [ "sphinx-autobuild", "-E", "-b", "html", "--watch", "src", "docs/source", "docs/build/html" ] ]
 
 [tool.tox.env.style]
 base_python = "3.9"
@@ -167,6 +172,28 @@ description = "Run static type checkers"
 dependency_groups = [ "typing" ]
 skip_install = true
 commands = [ [ "mypy" ] ]
+
+[tool.tox.env.update-actions]
+description = "update GitHub Actions pins"
+skip_install = true
+dependency_groups = [ "gha-update" ]
+commands = [ [ "gha-update" ] ]
+labels = [ "update" ]
+
+[tool.tox.env.update-pre_commit]
+description = "update pre-commit pins"
+skip_install = true
+dependency_groups = [ "pre-commit" ]
+commands = [ [ "pre-commit", "autoupdate", "--freeze", "-j4" ] ]
+labels = [ "update" ]
+
+[tool.tox.env.update-requirements]
+description = "update uv lock"
+skip_install = true
+dependency_groups = [  ]
+commands = [ [ "uv", "lock", { replace = "posargs", default = [ "-U" ], extend = true } ] ]
+labels = [ "update" ]
+no_default_groups = true
 
 [tool.tox.env_run_base]
 description = "Run unit tests and generate coverage report"
@@ -195,7 +222,7 @@ check_untyped_defs = true
 disallow_untyped_defs = true
 
 [tool.uv]
-default-groups = [ "dev", "pre-commit" ]
+default-groups = [ "dev", "pre-commit", "tox" ]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

@@ -30,9 +30,17 @@ This project uses [pre-commit](https://pre-commit.com/) to enforce style and typ
 uv run pre-commit install --install-hooks
 ```
 
+## Bumping Dependencies
+
+Github actions, pre-commit, and uv dependencies can be bumped by running the following:
+
+```
+uv run tox -m update
+```
+
 ## Dev shell
 
-If certwrangler is installed with the `[dev]` extras (the default with installation through `uv`) then you'll also have access to the `dev-shell` sub-command. This provides you with an IPython environment pre-loaded with the various certwrangler modules loaded, which is helpful for playing around with the various types to test out changes:
+If certwrangler is installed with the development dependency groups (the default when using `uv sync`) then you'll also have access to the `dev-shell` sub-command. This provides you with an IPython environment pre-loaded with the various certwrangler modules loaded, which is helpful for playing around with the various types to test out changes:
 
 ```
 $ uv run certwrangler dev-shell

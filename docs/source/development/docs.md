@@ -8,7 +8,7 @@ Documentation can be built through tox like so:
 uv run tox -e docs
 ```
 
-The docs will be rendered to `docs/build/dirhtml`.
+The docs will be rendered to `docs/build/html`.
 
 A development HTTP server with the docs can be launched on localhost with the following:
 

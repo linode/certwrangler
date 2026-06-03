@@ -7,29 +7,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build Docs
-    container: python:3.12
+    container: python:3.13
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Git config
         run: |
           git config --system --add safe.directory /__w/certwrangler/certwrangler
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+          prune-cache: false
       - name: Install build deps
         run: |
           apt update
           apt install -y graphviz graphviz-dev
-      - name: Install
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install .[docs,dev]
       - name: Build
         run: |
-          make -C docs html
+          uv run --locked --no-default-groups --group tox tox -e docs
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: docs/build/html/
