@@ -16,8 +16,11 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-  "Topic :: Security :: Cryptography",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Security",
+  "Topic :: System :: Networking",
   "Topic :: System :: Systems Administration",
+  "Topic :: Utilities",
 ]
 dynamic = [ "version" ]
 dependencies = [
