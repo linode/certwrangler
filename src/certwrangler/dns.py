@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from typing import List, Tuple
 
 import click
-from dns.message import QueryMessage
 from dns.rdatatype import RdataType
 from dns.resolver import NXDOMAIN, NoAnswer
 
@@ -47,9 +46,11 @@ def wait_for_challenges(
             except (NXDOMAIN, NoAnswer):
                 continue
             for answer in answers:
-                if answer.rdtype == RdataType.TXT:
-                    if answer.strings[0].decode() == info["token"]:
-                        challenges[name]["passed"] = True
+                if (
+                    answer.rdtype == RdataType.TXT
+                    and answer.strings[0].decode() == info["token"]
+                ):
+                    challenges[name]["passed"] = True
         if all([info["passed"] for info in challenges.values()]):
             return
         time.sleep(sleep)
@@ -109,12 +110,6 @@ def resolve_zone(ctx: click.Context, name: str) -> str:
     :raises ValueError: Raised if we fail to find an SOA.
     """
 
-    def _contains_cname(response: QueryMessage) -> bool:
-        for answer in response.answer:
-            if answer.rdtype == RdataType.CNAME:
-                return True
-        return False
-
     resolver = ctx.obj.resolver
     split_name = name.rstrip(".").split(".")
     for index, _ in enumerate(split_name):
@@ -125,7 +120,7 @@ def resolve_zone(ctx: click.Context, name: str) -> str:
             # No SOA at this level, move up and try again
             continue
         # CNAMEs can't exist at the root of a zone, continue if we have one.
-        if _contains_cname(response):
+        if any(answer.rdtype == RdataType.CNAME for answer in response.answer):
             continue
         for answer in response.answer:
             if answer.rdtype == RdataType.SOA:

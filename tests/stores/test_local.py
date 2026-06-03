@@ -56,7 +56,7 @@ class TestLocalStore:
         self._mock_path_mkdir.side_effect = OSError("That broke")
         with pytest.raises(StoreError, match="That broke"):
             store_local.initialize()
-        self._mock_path_mkdir.side_effect = IOError("Also broke")
+        self._mock_path_mkdir.side_effect = OSError("Also broke")
         with pytest.raises(StoreError, match="Also broke"):
             store_local.initialize()
 
@@ -148,7 +148,7 @@ class TestLocalStore:
         self._mock_path_mkdir.side_effect = OSError("That broke")
         with pytest.raises(StoreError, match="That broke"):
             store_local.publish(cert)
-        self._mock_path_mkdir.side_effect = IOError("Also broke")
+        self._mock_path_mkdir.side_effect = OSError("Also broke")
         with pytest.raises(StoreError, match="Also broke"):
             store_local.publish(cert)
         self._mock_path_mkdir.side_effect = None
@@ -156,7 +156,7 @@ class TestLocalStore:
         self._mock_open.side_effect = OSError("That broke")
         with pytest.raises(StoreError, match="That broke"):
             store_local.publish(cert)
-        self._mock_open.side_effect = IOError("Also broke")
+        self._mock_open.side_effect = OSError("Also broke")
         with pytest.raises(StoreError, match="Also broke"):
             store_local.publish(cert)
 

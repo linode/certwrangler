@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Any, Dict, Union
+from typing import Annotated, Any, Dict, Union
 
 import josepy as jose
 from acme import messages
@@ -10,7 +10,6 @@ from cryptography.hazmat.primitives.asymmetric.types import (
 )
 from cryptography.x509.oid import NameOID
 from pydantic import BeforeValidator, Field, PlainSerializer, WithJsonSchema
-from typing_extensions import Annotated
 
 # Cryptography Types
 

@@ -93,10 +93,7 @@ def linkcode_resolve(domain, info):
 
     filename = os.path.relpath(fn, start=os.path.dirname(certwrangler.__file__))
 
-    if lineno:
-        linespec = f"#L{lineno}-L{lineno + len(source) - 1}"
-    else:
-        linespec = ""
+    linespec = f"#L{lineno}-L{lineno + len(source) - 1}" if lineno else ""
 
     # This is what we'd want to do if we switch over to versioned docs:
 

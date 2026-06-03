@@ -34,7 +34,7 @@ class LocalStore(Store):
             log.info(f"Creating directory '{self.path}' for store '{self.name}'")
             try:
                 self.path.mkdir(parents=True)
-            except (OSError, IOError) as error:
+            except OSError as error:
                 raise StoreError(error) from error
 
     def publish(self, cert: Cert) -> None:
@@ -54,7 +54,7 @@ class LocalStore(Store):
             )
             try:
                 cert_path.mkdir(parents=True)
-            except (OSError, IOError) as error:
+            except OSError as error:
                 raise StoreError(error) from error
         state_contents = cert.state.model_dump()
         entities = [
@@ -86,7 +86,7 @@ class LocalStore(Store):
                     log.info(
                         f"Cert '{cert.name}' {entity_type} saved to '{entity_path}'"
                     )
-            except (OSError, IOError) as error:
+            except OSError as error:
                 raise StoreError(error) from error
 
     def _get_digest(self, obj: Union[str, Path]) -> str:
@@ -97,7 +97,7 @@ class LocalStore(Store):
             return hashlib.sha256(obj.encode()).hexdigest()
         if not obj.exists():
             return ""
-        with open(obj, "r") as file_handler:
+        with open(obj) as file_handler:
             return hashlib.sha256(
                 "".join(file_handler.readlines()).encode()
             ).hexdigest()

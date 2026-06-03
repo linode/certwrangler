@@ -126,7 +126,7 @@ class CertwranglerState:
                 raise ConfigError("No config_path defined to load from.")
             try:
                 log.info(f"Loading config from {self.config_path}")
-                with open(self.config_path, "r") as file_handler:
+                with open(self.config_path) as file_handler:
                     config_template = Template(file_handler.read())
                     self.config = Config(
                         **yaml.load(

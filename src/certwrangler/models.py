@@ -439,8 +439,7 @@ class Cert(NamedModel):
     )
     store_names: List[str] = Field(
         ...,
-        description="A list of the configured stores the cert should be "
-        "published to.",
+        description="A list of the configured stores the cert should be published to.",
     )
     store_key: Optional[str] = Field(
         None,
@@ -487,8 +486,8 @@ class Cert(NamedModel):
         """
         try:
             return self._config.accounts[self.account_name]
-        except KeyError:
-            raise ValueError(f"No account named '{self.account_name}'.")
+        except KeyError as error:
+            raise ValueError(f"No account named '{self.account_name}'.") from error
 
     @property
     def stores(self) -> List[Store]:
@@ -524,8 +523,8 @@ class Cert(NamedModel):
         """
         try:
             return self._config.subjects[self.subject_name]
-        except KeyError:
-            raise ValueError(f"No subject named '{self.subject_name}'.")
+        except KeyError as error:
+            raise ValueError(f"No subject named '{self.subject_name}'.") from error
 
     def get_solver_for_zone(self, zone: str) -> Solver:
         """

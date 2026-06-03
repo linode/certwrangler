@@ -70,7 +70,7 @@ class TestAccountController:
         with pytest.raises(
             ControllerError, match="Unable to create client, no account key in state."
         ):
-            account_controller.client
+            _ = account_controller.client
         # make a key so we can access the client
         new_key = jose.JWKRSA(
             key=rsa.generate_private_key(

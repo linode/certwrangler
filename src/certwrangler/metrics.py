@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 import types
 from collections import UserDict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Callable, Dict, Iterable, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import click
 from prometheus_client import Counter, Gauge, Info
@@ -165,10 +166,10 @@ class MetricRegistry(UserDict[str, EntityMetrics]):
         :param entities: A list of entity names that should be present.
         """
         # First remove:
-        for entity in [entity for entity in self.data.keys() if entity not in entities]:
+        for entity in [entity for entity in self.data if entity not in entities]:
             self.remove_entity(entity)
         # Then add:
-        for entity in [entity for entity in entities if entity not in self.data.keys()]:
+        for entity in [entity for entity in entities if entity not in self.data]:
             self.add_entity(entity)
 
     def add_entity(self, entity_name: str) -> None:

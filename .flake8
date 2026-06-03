@@ -1,3 +1,0 @@
-[flake8]
-# Ignore line length checks
-extend-ignore = E501,F821

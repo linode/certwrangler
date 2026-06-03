@@ -50,6 +50,7 @@ entry-points."certwrangler.store".vault = "certwrangler.stores.vault:VaultStore"
 [dependency-groups]
 dev = [
   "ipython",
+  "ruff",
   "tox",
   "tox-uv",
 ]
@@ -85,8 +86,22 @@ typing = [
 [tool.hatch.version]
 source = "vcs"
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+src = [ "src" ]
+fix = true
+show-fixes = true
+output-format = "full"
+
+lint.select = [
+  "B",   # flake8-bugbear
+  "E",   # pycodestyle error
+  "F",   # pyflakes
+  "I",   # isort
+  "SIM", # flake8-simplify
+  # "UP",  # pyupgrade - enable after dropping python 3.9.
+  "W", # pycodestyle warning
+]
+lint.ignore = [ "E501" ]
 
 [tool.pyproject-fmt]
 max_supported_python = "3.13"

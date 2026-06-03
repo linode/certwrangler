@@ -208,10 +208,8 @@ class AccountController:
         if not self.account.state.registration:
             raise ControllerError("No registration found.")
         emails = tuple(
-            (
-                f"{self.account.state.registration.body.email_prefix}{email}"
-                for email in self.account.emails
-            )
+            f"{self.account.state.registration.body.email_prefix}{email}"
+            for email in self.account.emails
         )
         self.account.state.registration = self.client.update_registration(
             self.account.state.registration.update(

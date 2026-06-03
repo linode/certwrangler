@@ -41,9 +41,7 @@ def _is_encrypted(data: str) -> bool:
     Simple check to see if the state is encrypted based on the presence of
     the encryption header and footer.
     """
-    if re.match(ENCRYPTION_REGEX, data):
-        return True
-    return False
+    return bool(re.match(ENCRYPTION_REGEX, data))
 
 
 def _parse_encrypted_state(data: str) -> Dict[str, Any]:
@@ -104,13 +102,7 @@ def _encrypt(
         drop_whitespace=False,
         break_on_hyphens=False,
     )
-    return (
-        f"{ENCRYPTION_HEADER}\n"
-        f"{metadata_block}"
-        f"\n"
-        f"{data_block}\n"
-        f"{ENCRYPTION_FOOTER}\n"
-    )
+    return f"{ENCRYPTION_HEADER}\n{metadata_block}\n{data_block}\n{ENCRYPTION_FOOTER}\n"
 
 
 def _list_entities(
@@ -132,7 +124,7 @@ def _list_entities(
             "encryption_metadata": {},
             "path": str(state_path.absolute()),
         }
-        with open(state_path, "r") as file_handler:
+        with open(state_path) as file_handler:
             data = file_handler.read()
         if _is_encrypted(data):
             entities[entity_name]["encrypted"] = True
@@ -191,7 +183,7 @@ class LocalStateManager(StateManager):
                     f"Creating directory '{self.certs_path}' for cert state storage."
                 )
                 self.certs_path.mkdir(parents=True)
-        except (OSError, IOError) as error:
+        except OSError as error:
             raise StateManagerError(error) from error
 
     def list(self) -> Dict[str, Dict[str, Any]]:
@@ -210,7 +202,7 @@ class LocalStateManager(StateManager):
                     self.certs_path, list(self._config.certs.keys())
                 ),
             }
-        except (OSError, IOError) as error:
+        except OSError as error:
             raise StateManagerError(error) from error
 
     def save(self, entity: Union[Account, Cert], encrypt: bool = True) -> None:
@@ -237,7 +229,7 @@ class LocalStateManager(StateManager):
             log.debug(
                 f"{entity.__class__.__name__} '{entity.name}' state saved to '{state_path}'"
             )
-        except (OSError, IOError) as error:
+        except OSError as error:
             raise StateManagerError(error) from error
 
     def load(self, entity: Union[Account, Cert]) -> None:
@@ -256,7 +248,7 @@ class LocalStateManager(StateManager):
             if not state_path.exists():
                 return
             state_class = type(entity.state)
-            with open(state_path, "r") as file_handler:
+            with open(state_path) as file_handler:
                 data = file_handler.read()
             if _is_encrypted(data):
                 if self.encryptor is None:
@@ -269,7 +261,7 @@ class LocalStateManager(StateManager):
             log.debug(
                 f"{entity.__class__.__name__} '{entity.name}' state loaded from '{state_path}'"
             )
-        except (OSError, IOError, json.decoder.JSONDecodeError) as error:
+        except (OSError, json.decoder.JSONDecodeError) as error:
             raise StateManagerError(error) from error
         except InvalidToken as error:
             raise StateManagerError(
@@ -291,5 +283,5 @@ class LocalStateManager(StateManager):
         try:
             if state_path.exists():
                 state_path.unlink()
-        except (OSError, IOError) as error:
+        except OSError as error:
             raise StateManagerError(error) from error

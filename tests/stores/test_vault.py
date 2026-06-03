@@ -164,18 +164,21 @@ class TestVaultStore:
         store_vault.client.is_authenticated.assert_called()
         store_vault.client.secrets.kv.v1.read_secret.assert_called()
         store_vault.client.secrets.kv.v1.create_or_update_secret.assert_called()
-        assert store_vault.client.secrets.kv.v1.create_or_update_secret.call_args_list == [
-            mocker.call(
-                mount_point=store_vault.mount_point,
-                path=Path("foo/test_cert"),
-                secret={
-                    "key": "test key\n",
-                    "cert": "test cert\n",
-                    "chain": "test intermediate 1\ntest intermediate 2\ntest ca\n",
-                    "fullchain": "test cert\ntest intermediate 1\ntest intermediate 2\ntest ca\n",
-                },
-            )
-        ]
+        assert (
+            store_vault.client.secrets.kv.v1.create_or_update_secret.call_args_list
+            == [
+                mocker.call(
+                    mount_point=store_vault.mount_point,
+                    path=Path("foo/test_cert"),
+                    secret={
+                        "key": "test key\n",
+                        "cert": "test cert\n",
+                        "chain": "test intermediate 1\ntest intermediate 2\ntest ca\n",
+                        "fullchain": "test cert\ntest intermediate 1\ntest intermediate 2\ntest ca\n",
+                    },
+                )
+            ]
+        )
 
     def test_publish_v2(self, store_vault, cert, cert_state, mocker):
         """
@@ -209,18 +212,21 @@ class TestVaultStore:
         store_vault.client.is_authenticated.assert_called()
         store_vault.client.secrets.kv.v2.read_secret_version.assert_called()
         store_vault.client.secrets.kv.v2.create_or_update_secret.assert_called()
-        assert store_vault.client.secrets.kv.v2.create_or_update_secret.call_args_list == [
-            mocker.call(
-                mount_point=store_vault.mount_point,
-                path=Path("foo/test_cert"),
-                secret={
-                    "key": "test key\n",
-                    "cert": "test cert\n",
-                    "chain": "test intermediate 1\ntest intermediate 2\ntest ca\n",
-                    "fullchain": "test cert\ntest intermediate 1\ntest intermediate 2\ntest ca\n",
-                },
-            )
-        ]
+        assert (
+            store_vault.client.secrets.kv.v2.create_or_update_secret.call_args_list
+            == [
+                mocker.call(
+                    mount_point=store_vault.mount_point,
+                    path=Path("foo/test_cert"),
+                    secret={
+                        "key": "test key\n",
+                        "cert": "test cert\n",
+                        "chain": "test intermediate 1\ntest intermediate 2\ntest ca\n",
+                        "fullchain": "test cert\ntest intermediate 1\ntest intermediate 2\ntest ca\n",
+                    },
+                )
+            ]
+        )
 
     def test_publish_no_state(self, store_vault, cert, mocker):
         """

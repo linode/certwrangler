@@ -77,7 +77,7 @@ class KubernetesAuth(BaseAuth):
         Login logic for kubernetes auth.
         """
 
-        with open(self.token_path, "r") as file_handler:
+        with open(self.token_path) as file_handler:
             jwt = file_handler.read()
         kwargs = {
             "role": self.role,

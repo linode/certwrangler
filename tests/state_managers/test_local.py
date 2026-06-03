@@ -145,7 +145,7 @@ def test__list_entities(mocker):
     )
     entities = _list_entities(state_path_dir, known_entities)
     open_mock.assert_called_once_with(
-        Path("/tmp/certwrangler/state/certs/test_entity.json"), "r"
+        Path("/tmp/certwrangler/state/certs/test_entity.json")
     )
     assert entities == {
         "test_entity": {
@@ -211,7 +211,7 @@ class TestLocalStateManager:
         state_manager_local.base_path.mkdir.side_effect = OSError("That broke")
         with pytest.raises(StateManagerError, match="That broke"):
             state_manager_local.initialize()
-        state_manager_local.base_path.mkdir.side_effect = IOError("Also broke")
+        state_manager_local.base_path.mkdir.side_effect = OSError("Also broke")
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.initialize()
 
@@ -257,7 +257,7 @@ class TestLocalStateManager:
         _list_entities_mock.side_effect = OSError("That broke")
         with pytest.raises(StateManagerError, match="That broke"):
             state_manager_local.list()
-        _list_entities_mock.side_effect = IOError("Also broke")
+        _list_entities_mock.side_effect = OSError("Also broke")
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.list()
 
@@ -364,7 +364,7 @@ class TestLocalStateManager:
             state_manager_local.save(account)
         with pytest.raises(StateManagerError, match="That broke"):
             state_manager_local.save(cert)
-        open_mock.side_effect = IOError("Also broke")
+        open_mock.side_effect = OSError("Also broke")
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.save(account)
         with pytest.raises(StateManagerError, match="Also broke"):
@@ -401,7 +401,7 @@ class TestLocalStateManager:
         assert account.state.key_size is None
         state_path.exists.return_value = True
         state_manager_local.load(account)
-        open_mock.assert_called_once_with(state_path, "r")
+        open_mock.assert_called_once_with(state_path)
         assert account.state.key_size == 12345
 
     def test_load_cert(self, cert, state_manager_local, mocker):
@@ -440,7 +440,7 @@ class TestLocalStateManager:
         assert cert.state.key_size is None
         state_path.exists.return_value = True
         state_manager_local.load(cert)
-        open_mock.assert_called_once_with(state_path, "r")
+        open_mock.assert_called_once_with(state_path)
         assert cert.state.key_size == 12345
 
     def test_load_encryption(self, cert, state_manager_local, mocker):
@@ -475,7 +475,7 @@ class TestLocalStateManager:
         certs_path_mock.joinpath.return_value = state_path
         state_path.exists.return_value = True
         state_manager_local.load(cert)
-        open_mock.assert_called_once_with(state_path, "r")
+        open_mock.assert_called_once_with(state_path)
         assert cert.state.key_size == 12345
 
     def test_load_encryption_error(self, cert, state_manager_local, mocker):
@@ -513,7 +513,7 @@ class TestLocalStateManager:
             "encryption_keys present.",
         ):
             state_manager_local.load(cert)
-        open_mock.assert_called_once_with(state_path, "r")
+        open_mock.assert_called_once_with(state_path)
         # Now test again with a bad key.
         open_mock.reset_mock()
         state_manager_local._encryptor = Encryptor(
@@ -524,7 +524,7 @@ class TestLocalStateManager:
             match="Failed to decrypt state for Cert 'test_cert'.",
         ):
             state_manager_local.load(cert)
-        open_mock.assert_called_once_with(state_path, "r")
+        open_mock.assert_called_once_with(state_path)
 
     def test_load_error(self, account, cert, state_manager_local, mocker):
         """
@@ -540,7 +540,7 @@ class TestLocalStateManager:
             state_manager_local.load(account)
         with pytest.raises(StateManagerError, match="That broke"):
             state_manager_local.load(cert)
-        open_mock.side_effect = IOError("Also broke")
+        open_mock.side_effect = OSError("Also broke")
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.load(account)
         with pytest.raises(StateManagerError, match="Also broke"):
@@ -584,8 +584,8 @@ class TestLocalStateManager:
         cert_state_path.exists.return_value = True
         accounts_path_mock.joinpath.return_value = account_state_path
         certs_path_mock.joinpath.return_value = cert_state_path
-        account_state_path.unlink.side_effect = IOError("That broke")
-        cert_state_path.unlink.side_effect = IOError("That broke")
+        account_state_path.unlink.side_effect = OSError("That broke")
+        cert_state_path.unlink.side_effect = OSError("That broke")
         with pytest.raises(StateManagerError, match="That broke"):
             state_manager_local.delete("account", "test")
         with pytest.raises(StateManagerError, match="That broke"):

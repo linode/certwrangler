@@ -23,8 +23,10 @@ def _validate_nameservers(
     for value in values:
         try:
             ip_address(value)
-        except ValueError:
-            raise click.BadParameter(f"Nameserver '{value}' is not a valid IP address.")
+        except ValueError as error:
+            raise click.BadParameter(
+                f"Nameserver '{value}' is not a valid IP address."
+            ) from error
     return list(values)
 
 

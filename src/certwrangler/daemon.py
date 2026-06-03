@@ -4,8 +4,9 @@ import logging
 import signal
 import sys
 import threading
+from collections.abc import Iterable, Mapping
 from types import FrameType
-from typing import Any, Callable, Iterable, List, Mapping, Optional
+from typing import Any, Callable, List, Optional
 
 import click
 
