@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 import logging
 from pathlib import Path
-from typing import Dict, Literal, Optional, Union
+from typing import Literal
 
 # hvac has no types, see: https://github.com/hvac/hvac/issues/800
 import hvac  # type: ignore
@@ -37,7 +37,7 @@ class AppRoleAuth(BaseAuth):
     """
 
     method: Literal["approle"]
-    mount_point: Optional[str] = Field(
+    mount_point: str | None = Field(
         default=None, description="Optional mount point for the auth method."
     )
     role_id: str = Field(..., description="The AppRole role_id.")
@@ -63,7 +63,7 @@ class KubernetesAuth(BaseAuth):
     """
 
     method: Literal["kubernetes"]
-    mount_point: Optional[str] = Field(
+    mount_point: str | None = Field(
         default=None, description="Optional mount point for the auth method."
     )
     role: str = Field(..., description="The name of the role.")
@@ -111,7 +111,7 @@ class VaultStore(Store):
 
     driver: Literal["vault"]
     server: HttpUrl = Field(..., description="The URI of the vault server.")
-    ca_cert: Optional[Path] = Field(
+    ca_cert: Path | None = Field(
         default=None,
         description="Optional path to a CA cert for requests to vault.",
     )
@@ -120,11 +120,11 @@ class VaultStore(Store):
     version: Literal[1, 2] = Field(
         default=2, description="The version of the vault secrets engine."
     )
-    auth: Union[AppRoleAuth, TokenAuth, KubernetesAuth] = Field(
+    auth: AppRoleAuth | TokenAuth | KubernetesAuth = Field(
         discriminator="method", description="The config for authenticating with vault."
     )
 
-    _client: Optional[hvac.Client] = PrivateAttr(default=None)
+    _client: hvac.Client | None = PrivateAttr(default=None)
 
     @property
     def client(self) -> hvac.Client:
@@ -190,7 +190,7 @@ class VaultStore(Store):
                 f"Cert '{cert.name}' published to '{self.mount_point}/{secret_path}' in vault"
             )
 
-    def _read_v1(self, path: Path) -> Dict[str, str]:
+    def _read_v1(self, path: Path) -> dict[str, str]:
         """
         Read the contents of a secret from a v1 vault endpoint.
         """
@@ -200,7 +200,7 @@ class VaultStore(Store):
             path=path,
         )["data"]
 
-    def _write_v1(self, path: Path, secret: Dict[str, str]) -> None:
+    def _write_v1(self, path: Path, secret: dict[str, str]) -> None:
         """
         Write the contents of a secret to a v1 vault endpoint.
         """
@@ -211,7 +211,7 @@ class VaultStore(Store):
             secret=secret,
         )
 
-    def _read_v2(self, path: Path) -> Dict[str, str]:
+    def _read_v2(self, path: Path) -> dict[str, str]:
         """
         Read the contents of a secret from a v2 vault endpoint.
         """
@@ -221,7 +221,7 @@ class VaultStore(Store):
             path=path,
         )["data"]["data"]
 
-    def _write_v2(self, path: Path, secret: Dict[str, str]) -> None:
+    def _write_v2(self, path: Path, secret: dict[str, str]) -> None:
         """
         Write the contents of a secret to a v1 vault endpoint.
         """

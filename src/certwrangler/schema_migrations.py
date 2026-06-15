@@ -2,10 +2,11 @@
 This module contains state schema migrations that should be applied.
 """
 
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from typing import Any
 
 
-def _cert_migration_00_add_chain(data: Dict[str, Any]) -> Dict[str, Any]:
+def _cert_migration_00_add_chain(data: dict[str, Any]) -> dict[str, Any]:
     """
     Switch from storing the CA and intermediate(s) separately to a generic
     chain field.
@@ -27,7 +28,7 @@ def _cert_migration_00_add_chain(data: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
-ACCOUNT_STATE_SCHEMA_MIGRATIONS: List[Callable[[Dict[str, Any]], Dict[str, Any]]] = []
-CERT_STATE_SCHEMA_MIGRATIONS: List[Callable[[Dict[str, Any]], Dict[str, Any]]] = [
+ACCOUNT_STATE_SCHEMA_MIGRATIONS: list[Callable[[dict[str, Any]], dict[str, Any]]] = []
+CERT_STATE_SCHEMA_MIGRATIONS: list[Callable[[dict[str, Any]], dict[str, Any]]] = [
     _cert_migration_00_add_chain,
 ]

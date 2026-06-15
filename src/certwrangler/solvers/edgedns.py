@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 import requests
 
@@ -119,7 +119,7 @@ class EdgeDNSSolver(Solver):
                 f"Expected 'rdata' in response to be a list, got {type(record.get('rdata')).__name__}."
             )
 
-    def _cleanup_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
+    def _cleanup_response(self, response: dict[str, Any]) -> dict[str, Any]:
         """
         The EdgeDNS API seems to leave literal double quotes on the strings for
         TXT records. This just goes through each of the entries to strip them away.
@@ -153,7 +153,7 @@ class EdgeDNSSolver(Solver):
             raise SolverError(error) from error
         return response.content
 
-    def _get(self, endpoint: str) -> Optional[Dict[str, Any]]:
+    def _get(self, endpoint: str) -> dict[str, Any] | None:
         """
         Send a GET request to the specified endpoint and return the parsed
         json response.
@@ -173,7 +173,7 @@ class EdgeDNSSolver(Solver):
             raise SolverError(error) from error
         return self._cleanup_response(response.json())
 
-    def _post(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _post(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Send a POST request to the specified endpoint with the specified payload
         and return the parsed json response.
@@ -191,7 +191,7 @@ class EdgeDNSSolver(Solver):
             raise SolverError(error) from error
         return self._cleanup_response(response.json())
 
-    def _put(self, endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _put(self, endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Send a PUT request to the specified endpoint with the specified payload
         and return the parsed json response.

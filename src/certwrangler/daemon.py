@@ -4,9 +4,9 @@ import logging
 import signal
 import sys
 import threading
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from types import FrameType
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 import click
 
@@ -35,17 +35,17 @@ class ThreadWithContext(threading.Thread):
     def __init__(
         self,
         group: None = None,
-        target: Optional[Callable[..., object]] = None,
-        name: Optional[str] = None,
+        target: Callable[..., object] | None = None,
+        name: str | None = None,
         args: Iterable[Any] = [],
-        kwargs: Optional[Mapping[str, Any]] = None,
+        kwargs: Mapping[str, Any] | None = None,
         *,
-        daemon: Optional[bool] = None,
+        daemon: bool | None = None,
     ) -> None:
         self.ctx: click.Context = click.get_current_context()
-        self.loop: Optional[asyncio.AbstractEventLoop] = None
+        self.loop: asyncio.AbstractEventLoop | None = None
         self.graceful_stop_event: threading.Event = threading.Event()
-        self.async_graceful_stop_event: Optional[asyncio.Event] = None
+        self.async_graceful_stop_event: asyncio.Event | None = None
         super().__init__(group, target, name, args, kwargs, daemon=daemon)
 
     def run(self) -> None:
@@ -121,7 +121,7 @@ class Daemon:
 
     def __init__(self) -> None:
         self.ctx: click.Context = click.get_current_context()
-        self.threads: List[ThreadWithContext] = []
+        self.threads: list[ThreadWithContext] = []
         self.stopping: threading.Event = threading.Event()
         self.reloading: threading.Lock = threading.Lock()
 
@@ -161,7 +161,7 @@ class Daemon:
             log.info(f"Thread {thread.name} stopped.")
         self.threads = [thread for thread in self.threads if thread.is_alive()]
 
-    def _reload_handler(self, signal_number: int, _frame: Optional[FrameType]) -> None:
+    def _reload_handler(self, signal_number: int, _frame: FrameType | None) -> None:
         """
         Handles processing a reload of the config on SIGHUP. This will gracefully
         stop the threads, reload and re-initialize the config, then start the
@@ -178,7 +178,7 @@ class Daemon:
             self._create_threads()
             self._start_threads()
 
-    def _stop_handler(self, signal_number: int, _frame: Optional[FrameType]) -> None:
+    def _stop_handler(self, signal_number: int, _frame: FrameType | None) -> None:
         """
         Handles processing stopping the threads on SIGTERM and SIGINT. This
         will first attempt to gracefully stop the threads, then forcefully

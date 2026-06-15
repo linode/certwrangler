@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
 from string import Template
-from typing import List, Optional
 
 import yaml
 from dns.resolver import Resolver
@@ -57,7 +56,7 @@ class CertwranglerState:
     The instance of :class:`certwrangler.daemon.Daemon`.
     """
 
-    config: Optional[Config] = None
+    config: Config | None = None
     """
     The loaded instance of :class:`certwrangler.models.Config`, populated by :meth:`load_config`.
     """
@@ -73,7 +72,7 @@ class CertwranglerState:
     """
 
     _log_level: LogLevels = field(init=False, repr=False, default=LogLevels.info)
-    _loggers: List[logging.Logger] = field(
+    _loggers: list[logging.Logger] = field(
         init=False,
         repr=False,
         default_factory=lambda: [

@@ -5,7 +5,7 @@ import logging
 import re
 import textwrap
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from cryptography.fernet import InvalidToken
 from pydantic import Field
@@ -44,7 +44,7 @@ def _is_encrypted(data: str) -> bool:
     return bool(re.match(ENCRYPTION_REGEX, data))
 
 
-def _parse_encrypted_state(data: str) -> Dict[str, Any]:
+def _parse_encrypted_state(data: str) -> dict[str, Any]:
     """
     Parses the encrypted state and returns a dict with the encrypted data
     and any discovered metadata tags.
@@ -79,7 +79,7 @@ def _decrypt(data: str, encryptor: Encryptor) -> str:
 
 
 def _encrypt(
-    encryptor: Encryptor, data: str, metadata: Optional[Dict[str, str]] = None
+    encryptor: Encryptor, data: str, metadata: dict[str, str] | None = None
 ) -> str:
     """
     Encrypts the contents of data using the provided encryptor. Can optionally
@@ -106,8 +106,8 @@ def _encrypt(
 
 
 def _list_entities(
-    state_path_dir: Path, known_entities: List[str]
-) -> Dict[str, Dict[str, Any]]:
+    state_path_dir: Path, known_entities: list[str]
+) -> dict[str, dict[str, Any]]:
     """
     Loops through the contents of the provided state_path_dir and compares
     the discovered entities to the provided known_entities list. Returns
@@ -186,7 +186,7 @@ class LocalStateManager(StateManager):
         except OSError as error:
             raise StateManagerError(error) from error
 
-    def list(self) -> Dict[str, Dict[str, Any]]:
+    def list(self) -> dict[str, dict[str, Any]]:
         """
         List all the state entities under management. Returns a dict of all
         the names of accounts and certs it discovers.
@@ -205,7 +205,7 @@ class LocalStateManager(StateManager):
         except OSError as error:
             raise StateManagerError(error) from error
 
-    def save(self, entity: Union[Account, Cert], encrypt: bool = True) -> None:
+    def save(self, entity: Account | Cert, encrypt: bool = True) -> None:
         """
         Save the provided entity's (Account or Cert object) state and by
         default will encrypt the contents if an encryptor is configured.
@@ -232,7 +232,7 @@ class LocalStateManager(StateManager):
         except OSError as error:
             raise StateManagerError(error) from error
 
-    def load(self, entity: Union[Account, Cert]) -> None:
+    def load(self, entity: Account | Cert) -> None:
         """
         Load and decrypt (if an encryptor is present) the state of the provided
         entity (Account or Cert object).
@@ -269,7 +269,7 @@ class LocalStateManager(StateManager):
             ) from error
 
     def delete(
-        self, entity_class: Union[Literal["account"], Literal["cert"]], entity_name: str
+        self, entity_class: Literal["account"] | Literal["cert"], entity_name: str
     ) -> None:
         """
         Delete the state for the provided entity_class and entity_name.

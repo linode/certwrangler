@@ -7,7 +7,6 @@ changes to this code.
 
 import datetime
 import logging
-from typing import List, Optional, Tuple, Union
 
 import josepy as jose
 from acme import challenges as acme_challenges
@@ -86,7 +85,7 @@ class AccountController:
         self.state_manager = state_manager
         # Load to ensure we have the update state from the store.
         self.state_manager.load(self.account)
-        self._client: Optional[acme_client.ClientV2] = None
+        self._client: acme_client.ClientV2 | None = None
 
     @property
     def client(self) -> acme_client.ClientV2:
@@ -233,7 +232,7 @@ class CertController:
         self.state_manager = state_manager
         # Load to ensure we have the update state from the store.
         self.state_manager.load(self.cert)
-        self._client: Optional[acme_client.ClientV2] = None
+        self._client: acme_client.ClientV2 | None = None
 
     @property
     def client(self) -> acme_client.ClientV2:
@@ -537,7 +536,7 @@ class CertController:
 
     def _get_challenges(
         self, validate: bool = True, completed: bool = False
-    ) -> List[Tuple[str, acme_messages.ChallengeBody]]:
+    ) -> list[tuple[str, acme_messages.ChallengeBody]]:
         """
         Extracts the DNS challenges from the order.
 
@@ -570,7 +569,7 @@ class CertController:
 
     def _get_dns_records(
         self, validate: bool = True, completed: bool = False
-    ) -> List[Tuple[str, str, str, Solver]]:
+    ) -> list[tuple[str, str, str, Solver]]:
         """
         Compiles and returns the parts of a DNS records and associated
         :class:`certwrangler.models.Solver` instances for each of the
@@ -611,7 +610,7 @@ class CertController:
             dns_records.append((name, zone, token, solver))
         return dns_records
 
-    def _fail_order(self, error: Optional[Union[Exception, str]] = None) -> None:
+    def _fail_order(self, error: Exception | str | None = None) -> None:
         """
         Cleans up any resources created as part of processing the order and
         removes the order from the cert's state.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from lexicon.client import Client
 from lexicon.config import ConfigResolver
@@ -27,7 +27,7 @@ class LexiconSolver(Solver):
     provider_name: str = Field(
         ..., description="The name of the lexicon provider to use."
     )
-    provider_options: Dict[str, Any] = Field(
+    provider_options: dict[str, Any] = Field(
         default_factory=dict, description="Provider-specific options."
     )
 
@@ -65,7 +65,7 @@ class LexiconSolver(Solver):
 
     def _build_config(
         self, action: str, name: str, domain: str, content: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate the needed lexicon config for the request based on the action
         and the provider_options.

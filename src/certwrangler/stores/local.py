@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from pathlib import Path
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import Field
 
@@ -89,7 +89,7 @@ class LocalStore(Store):
             except OSError as error:
                 raise StoreError(error) from error
 
-    def _get_digest(self, obj: Union[str, Path]) -> str:
+    def _get_digest(self, obj: str | Path) -> str:
         """
         Get the sha256sum of either a str or Path object.
         """

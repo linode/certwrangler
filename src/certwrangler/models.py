@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import abc
 import base64
+import builtins
 import hashlib
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from ipaddress import IPv4Address
 from pathlib import Path
-from typing import Any, Callable, ClassVar, Dict, List, Literal, Optional, Union
+from typing import Any, ClassVar, Literal
 
 from cryptography import x509
 from cryptography.fernet import MultiFernet
@@ -83,7 +85,7 @@ class StateModel(BaseModel):
     The :attr:`_migrated` attribute is set if the model schema was migrated.
     """
 
-    schema_migrations: ClassVar[List[Callable[[Dict[str, Any]], Dict[str, Any]]]] = []
+    schema_migrations: ClassVar[list[Callable[[dict[str, Any]], dict[str, Any]]]] = []
 
     _migrated: bool = PrivateAttr(default=False)
 
@@ -132,7 +134,7 @@ class Solver(NamedModel, metaclass=abc.ABCMeta):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     driver: str = Field(..., description="The name of the driver to use.")
-    zones: List[Domain] = Field(
+    zones: list[Domain] = Field(
         ..., description="A list of DNS zones this solver should be used for."
     )
 
@@ -159,7 +161,7 @@ class Solver(NamedModel, metaclass=abc.ABCMeta):
 
     @field_validator("zones")
     @classmethod
-    def __validate_zones(cls, values: List[Domain]) -> List[Domain]:
+    def __validate_zones(cls, values: list[Domain]) -> list[Domain]:
         """
         Validate that the configured zones have valid SOA records.
 
@@ -204,7 +206,7 @@ class StateManager(BaseModel, metaclass=abc.ABCMeta):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     driver: str = Field(..., description="The name of the driver to use.")
-    encryption_keys: List[FernetKey] = Field(
+    encryption_keys: builtins.list[FernetKey] = Field(
         default_factory=list,
         description="An optional list of encryption keys to use to encrypt "
         "the state. Only the top-most key will be used for encryption "
@@ -214,10 +216,10 @@ class StateManager(BaseModel, metaclass=abc.ABCMeta):
     )
 
     _config: Config = PrivateAttr()
-    _encryptor: Optional[Encryptor] = PrivateAttr(default=None)
+    _encryptor: Encryptor | None = PrivateAttr(default=None)
 
     @property
-    def encryptor(self) -> Optional[Encryptor]:
+    def encryptor(self) -> Encryptor | None:
         """
         This sets up and returns an Encryptor if ``encryption_keys`` are defined.
 
@@ -236,21 +238,21 @@ class StateManager(BaseModel, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def list(self) -> Dict[str, Dict[str, Any]]:
+    def list(self) -> dict[str, dict[str, Any]]:
         """
         Lists all the saved states for the given entity_class including encryption fingerprint.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def save(self, entity: Union[Account, Cert], encrypt: bool = True) -> None:
+    def save(self, entity: Account | Cert, encrypt: bool = True) -> None:
         """
         Saves the state of the given entity.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def load(self, entity: Union[Account, Cert]) -> None:
+    def load(self, entity: Account | Cert) -> None:
         """
         Loads the state of the given entity to memory.
         """
@@ -258,7 +260,7 @@ class StateManager(BaseModel, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def delete(
-        self, entity_class: Union[Literal["account"], Literal["cert"]], entity_name: str
+        self, entity_class: Literal["account"] | Literal["cert"], entity_name: str
     ) -> None:
         """
         Deletes the given entity_name from state.
@@ -310,11 +312,11 @@ class AccountState(StateModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     schema_migrations = ACCOUNT_STATE_SCHEMA_MIGRATIONS
 
-    registration: Optional[Registration] = Field(
+    registration: Registration | None = Field(
         None, description="The ACME registration record."
     )
-    key: Optional[JWKRSAKey] = Field(None, description="The current RSA key.")
-    key_size: Optional[int] = Field(
+    key: JWKRSAKey | None = Field(None, description="The current RSA key.")
+    key_size: int | None = Field(
         None, description="The size of the current RSA key in bits."
     )
     status: AccountStatus = AccountStatus.new
@@ -327,7 +329,7 @@ class Account(NamedModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    emails: List[EmailStr] = Field(
+    emails: list[EmailStr] = Field(
         ..., description="A list of email addresses for the account."
     )
     server: HttpUrl = Field(
@@ -348,7 +350,7 @@ class Account(NamedModel):
 
     @field_validator("emails")
     @classmethod
-    def __validate_unique_emails(cls, values: List[EmailStr]) -> List[EmailStr]:
+    def __validate_unique_emails(cls, values: list[EmailStr]) -> list[EmailStr]:
         """
         Validates that all the configured emails are unique.
         """
@@ -364,15 +366,15 @@ class Subject(NamedModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    country: Optional[CountryNameOID] = Field(None, description="The country name OID.")  # type: ignore
-    state_or_province: Optional[StateOrProvinceOID] = Field(  # type: ignore
+    country: CountryNameOID | None = Field(None, description="The country name OID.")  # type: ignore
+    state_or_province: StateOrProvinceOID | None = Field(  # type: ignore
         None, description="The state or province OID."
     )
-    locality: Optional[LocalityOID] = Field(None, description="The locality OID.")  # type: ignore
-    organization: Optional[OrganizationOID] = Field(  # type: ignore
+    locality: LocalityOID | None = Field(None, description="The locality OID.")  # type: ignore
+    organization: OrganizationOID | None = Field(  # type: ignore
         None, description="The organization OID."
     )
-    organizational_unit: Optional[OrganizationalUnitOID] = Field(  # type: ignore
+    organizational_unit: OrganizationalUnitOID | None = Field(  # type: ignore
         None, description="The organizational unit OID."
     )
 
@@ -391,29 +393,27 @@ class CertState(StateModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     schema_migrations = CERT_STATE_SCHEMA_MIGRATIONS
 
-    url: Optional[str] = Field(
+    url: str | None = Field(
         None, description="The URL of the cert retrieved from the ACME server."
     )
-    key: Optional[RSAKey] = Field(None, description="The cert's RSA key.")
-    key_size: Optional[int] = Field(
-        None, description="The size of the RSA key in bits."
-    )
-    cert: Optional[X509Certificate] = Field(
+    key: RSAKey | None = Field(None, description="The cert's RSA key.")
+    key_size: int | None = Field(None, description="The size of the RSA key in bits.")
+    cert: X509Certificate | None = Field(
         None, description="The cert returned by the ACME server."
     )
-    chain: Optional[List[X509Certificate]] = Field(
+    chain: list[X509Certificate] | None = Field(
         None, description="The chain of trust returned by the ACME server."
     )
-    csr: Optional[X509CSR] = Field(
+    csr: X509CSR | None = Field(
         None, description="The CSR generated to request the cert."
     )
-    order: Optional[Order] = Field(
+    order: Order | None = Field(
         None, description="The order if an order is currently active."
     )
     status: CertStatus = CertStatus.new
 
     @computed_field
-    def fullchain(self) -> Optional[List[X509Certificate]]:
+    def fullchain(self) -> list[X509Certificate] | None:
         """
         The full chain of trust including the leaf cert.
         """
@@ -437,11 +437,11 @@ class Cert(NamedModel):
         description="The name of the configured ACME account the cert should "
         "be created under.",
     )
-    store_names: List[str] = Field(
+    store_names: list[str] = Field(
         ...,
         description="A list of the configured stores the cert should be published to.",
     )
-    store_key: Optional[str] = Field(
+    store_key: str | None = Field(
         None,
         description="Optional sub-key the cert should be published to in the "
         "store. Currently only supported by the vault store driver.",
@@ -451,7 +451,7 @@ class Cert(NamedModel):
         description="The name of the configured subject the cert should be "
         "created with.",
     )
-    alt_names: List[Domain] = Field(
+    alt_names: list[Domain] = Field(
         default_factory=list, description="A list of alternative names for the cert."
     )
     wait_timeout: timedelta = Field(
@@ -490,7 +490,7 @@ class Cert(NamedModel):
             raise ValueError(f"No account named '{self.account_name}'.") from error
 
     @property
-    def stores(self) -> List[Store]:
+    def stores(self) -> list[Store]:
         """
         Returns a list of the configured store objects.
 
@@ -508,7 +508,7 @@ class Cert(NamedModel):
         return stores
 
     @property
-    def solvers(self) -> Dict[str, Solver]:
+    def solvers(self) -> dict[str, Solver]:
         """
         Returns the available solvers.
         """
@@ -540,7 +540,7 @@ class Cert(NamedModel):
 
     @field_validator("store_names")
     @classmethod
-    def __validate_unique_stores(cls, values: List[str]) -> List[str]:
+    def __validate_unique_stores(cls, values: list[str]) -> list[str]:
         """
         Validates that all the configured stores are unique.
 
@@ -637,16 +637,14 @@ class HttpConfig(BaseModel):
     )
     port: int = Field(6377, description="Port the HTTP server should listen on.")
     server_name: str = Field("certwrangler", description="Name of the HTTP server.")
-    ssl_key_file: Optional[Path] = Field(None, description="Optional SSL key.")
-    ssl_key_password: Optional[str] = Field(
-        None, description="Optional SSL key password."
-    )
-    ssl_cert_file: Optional[Path] = Field(None, description="Optional SSL cert.")
-    ssl_ca_certs_file: Optional[Path] = Field(None, description="Optional SSL CA cert.")
+    ssl_key_file: Path | None = Field(None, description="Optional SSL key.")
+    ssl_key_password: str | None = Field(None, description="Optional SSL key password.")
+    ssl_cert_file: Path | None = Field(None, description="Optional SSL cert.")
+    ssl_ca_certs_file: Path | None = Field(None, description="Optional SSL CA cert.")
 
     @field_validator("ssl_key_file", "ssl_cert_file", "ssl_ca_certs_file")
     @classmethod
-    def __validate_ssl_files_exist(cls, value: Optional[Path]) -> Optional[Path]:
+    def __validate_ssl_files_exist(cls, value: Path | None) -> Path | None:
         """
         Validates that the specified file exists.
 
@@ -714,15 +712,15 @@ class Config(BaseModel):
     state_manager: StateManager = Field(
         ..., alias="state", description="Config for the state manager."
     )
-    accounts: Dict[str, Account] = Field(..., description="Config for the accounts.")
-    certs: Dict[str, Cert] = Field(..., description="Config for the certs.")
-    solvers: Dict[str, Solver] = Field(..., description="Config for the solvers.")
-    stores: Dict[str, Store] = Field(..., description="Config for the stores.")
-    subjects: Dict[str, Subject] = Field(..., description="Config for the subjects.")
+    accounts: dict[str, Account] = Field(..., description="Config for the accounts.")
+    certs: dict[str, Cert] = Field(..., description="Config for the certs.")
+    solvers: dict[str, Solver] = Field(..., description="Config for the solvers.")
+    stores: dict[str, Store] = Field(..., description="Config for the stores.")
+    subjects: dict[str, Subject] = Field(..., description="Config for the subjects.")
 
     @field_validator("solvers", mode="before")
     @classmethod
-    def __load_solver_plugins(cls, values: Dict[str, Any]) -> Dict[str, Solver]:
+    def __load_solver_plugins(cls, values: dict[str, Any]) -> dict[str, Solver]:
         """
         Dynamically load solver plugins based on their driver key.
 
@@ -742,7 +740,7 @@ class Config(BaseModel):
 
     @field_validator("state_manager", mode="before")
     @classmethod
-    def __load_state_manager_plugin(cls, values: Dict[str, Any]) -> StateManager:
+    def __load_state_manager_plugin(cls, values: dict[str, Any]) -> StateManager:
         """
         Dynamically load state_manager plugins based on their driver key.
 
@@ -760,7 +758,7 @@ class Config(BaseModel):
 
     @field_validator("stores", mode="before")
     @classmethod
-    def __load_store_plugins(cls, values: Dict[str, Any]) -> Dict[str, Store]:
+    def __load_store_plugins(cls, values: dict[str, Any]) -> dict[str, Store]:
         """
         Dynamically load store plugins based on their driver key.
 
@@ -780,7 +778,7 @@ class Config(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def __pre_populate(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def __pre_populate(cls, values: dict[str, Any]) -> dict[str, Any]:
         """
         Pre-populate the config data with some defaults.
         """

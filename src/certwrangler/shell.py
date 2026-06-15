@@ -5,7 +5,7 @@ import pathlib
 import sys
 from importlib.util import find_spec
 from ipaddress import ip_address
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import click
 from cryptography.fernet import Fernet
@@ -18,8 +18,8 @@ log = logging.getLogger(__name__)
 
 
 def _validate_nameservers(
-    ctx: click.Context, params: Dict[str, Any], values: List[str]
-) -> List[str]:
+    ctx: click.Context, params: dict[str, Any], values: list[str]
+) -> list[str]:
     for value in values:
         try:
             ip_address(value)
@@ -66,7 +66,7 @@ def _validate_nameservers(
 )
 @click.pass_context
 def cli(
-    ctx: click.Context, config: str, log_level: str, nameservers: List[str]
+    ctx: click.Context, config: str, log_level: str, nameservers: list[str]
 ) -> None:
     """The certwrangler management cli."""
 
@@ -132,7 +132,7 @@ if find_spec("IPython"):
     @cli.command(context_settings={"ignore_unknown_options": True})
     @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
     @click.pass_context
-    def dev_shell(ctx: click.Context, ipython_args: Tuple[Any]) -> None:
+    def dev_shell(ctx: click.Context, ipython_args: tuple[Any]) -> None:
         """Open an IPython shell with a certwrangler context."""
 
         ctx.obj.load_config()

@@ -3,10 +3,9 @@ from __future__ import annotations
 import logging
 import types
 from collections import UserDict
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from functools import partial
-from typing import Callable, Dict, List, Optional, Union
 
 import click
 from prometheus_client import Counter, Gauge, Info
@@ -15,8 +14,7 @@ from prometheus_client.samples import Sample
 log = logging.getLogger(__name__)
 
 GaugeFunction = Callable[[click.Context, str], float]
-InfoFunction = Callable[[click.Context, str], Dict[str, str]]
-MetricTypes = Union[Counter, Gauge]
+InfoFunction = Callable[[click.Context, str], dict[str, str]]
 
 
 class DynamicInfo(Info):
@@ -25,7 +23,7 @@ class DynamicInfo(Info):
     pulling samples from a function, similar to gauges.
     """
 
-    def set_function(self, f: Callable[[], Dict[str, str]]) -> None:
+    def set_function(self, f: Callable[[], dict[str, str]]) -> None:
         """Call the provided function to return the Info value.
 
         The function must return a dict of strings.
@@ -55,9 +53,9 @@ class EntityMetrics:
     A registry of labeled metrics for an entity.
     """
 
-    counters: Dict[str, Counter] = field(default_factory=dict)
-    gauges: Dict[str, Gauge] = field(default_factory=dict)
-    infos: Dict[str, DynamicInfo] = field(default_factory=dict)
+    counters: dict[str, Counter] = field(default_factory=dict)
+    gauges: dict[str, Gauge] = field(default_factory=dict)
+    infos: dict[str, DynamicInfo] = field(default_factory=dict)
 
 
 class MetricRegistry(UserDict[str, EntityMetrics]):
@@ -70,12 +68,12 @@ class MetricRegistry(UserDict[str, EntityMetrics]):
 
     def __init__(self, subsystem: str) -> None:
         self.subsystem = subsystem
-        self.data: Dict[str, EntityMetrics] = {}
-        self._counters: Dict[str, Counter] = {}
-        self._gauges: Dict[str, Gauge] = {}
-        self._gauge_functions: Dict[str, Optional[GaugeFunction]] = {}
-        self._infos: Dict[str, DynamicInfo] = {}
-        self._info_functions: Dict[str, Optional[InfoFunction]] = {}
+        self.data: dict[str, EntityMetrics] = {}
+        self._counters: dict[str, Counter] = {}
+        self._gauges: dict[str, Gauge] = {}
+        self._gauge_functions: dict[str, GaugeFunction | None] = {}
+        self._infos: dict[str, DynamicInfo] = {}
+        self._info_functions: dict[str, InfoFunction | None] = {}
 
     def add_counter(
         self,
@@ -108,7 +106,7 @@ class MetricRegistry(UserDict[str, EntityMetrics]):
         name: str,
         documentation: str,
         unit: str = "",
-        function: Optional[GaugeFunction] = None,
+        function: GaugeFunction | None = None,
     ) -> None:
         """
         Register a new gauge in the registry.
@@ -136,7 +134,7 @@ class MetricRegistry(UserDict[str, EntityMetrics]):
         self,
         name: str,
         documentation: str,
-        function: Optional[InfoFunction] = None,
+        function: InfoFunction | None = None,
     ) -> None:
         """
         Register a new info in the registry.
@@ -158,7 +156,7 @@ class MetricRegistry(UserDict[str, EntityMetrics]):
         )
         self._info_functions[name] = function
 
-    def reconcile_entities(self, entities: List[str]) -> None:
+    def reconcile_entities(self, entities: list[str]) -> None:
         """
         Takes the list of entities that should be present and updates the
         registry to reflect that.

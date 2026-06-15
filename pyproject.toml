@@ -123,9 +123,8 @@ lint.select = [
   "F",   # pyflakes
   "I",   # isort
   "SIM", # flake8-simplify
-  # TODO: enable after dropping python 3.9 in a new PR.
-  # "UP",  # pyupgrade
-  "W", # pycodestyle warning
+  "UP",  # pyupgrade
+  "W",   # pycodestyle warning
 ]
 lint.ignore = [ "E501" ]
 

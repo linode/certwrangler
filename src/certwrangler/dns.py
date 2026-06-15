@@ -1,7 +1,6 @@
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 import click
 from dns.rdatatype import RdataType
@@ -13,7 +12,7 @@ log = logging.getLogger(__name__)
 @click.pass_context
 def wait_for_challenges(
     ctx: click.Context,
-    dns_records: List[Tuple[str, str]],
+    dns_records: list[tuple[str, str]],
     wait_timeout: timedelta,
     sleep: int = 5,
 ) -> None:

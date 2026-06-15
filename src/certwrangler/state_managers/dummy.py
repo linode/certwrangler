@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Literal, Union
+from typing import Any, Literal
 
 from certwrangler.models import Account, Cert, StateManager
 
@@ -21,14 +21,14 @@ class DummyStateManager(StateManager):
         """
         log.info("initialize called on dummy state manager")
 
-    def list(self) -> Dict[str, Dict[str, Any]]:
+    def list(self) -> dict[str, dict[str, Any]]:
         """
         No-op list, just log we were here and return an empty dict.
         """
         log.info("list called on dummy state manager")
         return {}
 
-    def save(self, entity: Union[Account, Cert], encrypt: bool = True) -> None:
+    def save(self, entity: Account | Cert, encrypt: bool = True) -> None:
         """
         No-op save, just log we were here.
         """
@@ -37,7 +37,7 @@ class DummyStateManager(StateManager):
             f"save called with {entity_type} '{entity.name}' encrypt={encrypt} on dummy state manager"
         )
 
-    def load(self, entity: Union[Account, Cert]) -> None:
+    def load(self, entity: Account | Cert) -> None:
         """
         No-op load, just log we were here.
         """
@@ -47,7 +47,7 @@ class DummyStateManager(StateManager):
         )
 
     def delete(
-        self, entity_class: Union[Literal["account"], Literal["cert"]], entity_name: str
+        self, entity_class: Literal["account"] | Literal["cert"], entity_name: str
     ) -> None:
         """
         No-op delete, just log we were here.

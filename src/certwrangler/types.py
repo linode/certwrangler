@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Annotated, Any, Dict, Union
+from typing import Annotated, Any
 
 import josepy as jose
 from acme import messages
@@ -174,7 +174,7 @@ Registration = Annotated[
 
 
 def _order_loader(
-    value: Union[Dict[str, Any], messages.OrderResource],
+    value: dict[str, Any] | messages.OrderResource,
 ) -> messages.OrderResource:
     """
     Deserializes a json representation of :class:`acme.messages.OrderResource`,
