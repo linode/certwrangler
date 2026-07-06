@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sys
 import threading
 from dataclasses import dataclass, field
 from enum import IntEnum
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from string import Template
 
@@ -148,3 +150,22 @@ class CertwranglerState:
                     ) from error
                 reconcile_dynamic_metrics()
             log.info(f"Config loaded from '{self.config_path}'.")
+
+
+@dataclass(frozen=True)
+class VersionInfo:
+    app_version: str = field(init=False)
+    commit_hash: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        try:
+            full_version = version("certwrangler")
+        except PackageNotFoundError:
+            full_version = "unknown"
+
+        app_version = full_version.split("+")[0]
+        match = re.search(r"\+g([0-9a-f]+)", full_version)
+        commit_hash = match.group(1) if match else "unknown"
+
+        object.__setattr__(self, "commit_hash", commit_hash)
+        object.__setattr__(self, "app_version", app_version)
