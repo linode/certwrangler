@@ -12,11 +12,7 @@ from cryptography.fernet import Fernet
 
 from certwrangler.exceptions import CertwranglerError
 from certwrangler.reconcilers import reconcile_all
-from certwrangler.utils import (
-    XDG_CONFIG_HOME,
-    CertwranglerState,
-    LogLevels,
-)
+from certwrangler.utils import XDG_CONFIG_HOME, CertwranglerState, LogLevels
 
 log = logging.getLogger(__name__)
 
