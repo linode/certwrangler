@@ -96,7 +96,7 @@ class CertwranglerState:
             logger.setLevel(self.log_level)
 
     @property
-    def version(self):
+    def version(self) -> str:
         if not self._version:
             self._version = version("certwrangler")
         return self._version
