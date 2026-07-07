@@ -6,6 +6,7 @@ import sys
 import threading
 from dataclasses import dataclass, field
 from enum import IntEnum
+from importlib.metadata import version
 from pathlib import Path
 from string import Template
 
@@ -71,6 +72,8 @@ class CertwranglerState:
     Resource lock for making changes to the state.
     """
 
+    _version: str | None = field(init=False, default=None)
+
     _log_level: LogLevels = field(init=False, repr=False, default=LogLevels.info)
     _loggers: list[logging.Logger] = field(
         init=False,
@@ -91,6 +94,12 @@ class CertwranglerState:
             logger.handlers.clear()
             logger.addHandler(log_handler)
             logger.setLevel(self.log_level)
+
+    @property
+    def version(self) -> str:
+        if not self._version:
+            self._version = version("certwrangler")
+        return self._version
 
     @property
     def log_level(self) -> LogLevels:
