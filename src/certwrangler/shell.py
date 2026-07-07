@@ -16,7 +16,6 @@ from certwrangler.utils import (
     XDG_CONFIG_HOME,
     CertwranglerState,
     LogLevels,
-    VersionInfo,
 )
 
 log = logging.getLogger(__name__)
@@ -87,9 +86,7 @@ def cli(
 @click.pass_context
 def daemon(ctx: click.Context) -> None:
     """Run certwrangler in daemon mode."""
-    log.info(
-        f"Running Certwrangler version {VersionInfo().app_version} (Build: {VersionInfo().commit_hash})"
-    )
+    log.info(f"Running Certwrangler version {ctx.obj.version}")
     try:
         ctx.obj.daemon.run()
     except CertwranglerError as error:
@@ -122,9 +119,7 @@ def check_config(ctx: click.Context, initialize: bool) -> None:
 @click.pass_context
 def run(ctx: click.Context) -> None:
     """Run a single reconcile loop of certwrangler."""
-    log.info(
-        f"Running Certwrangler version {VersionInfo().app_version} (Build: {VersionInfo().commit_hash})"
-    )
+    log.info(f"Running Certwrangler version {ctx.obj.version}")
     try:
         ctx.obj.load_config(initialize=True)
     except CertwranglerError as error:
