@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import textwrap
 from pathlib import Path
@@ -19,6 +20,7 @@ from certwrangler.models import (
     Encryptor,
     StateManager,
 )
+from certwrangler.types import FileMode
 from certwrangler.utils import XDG_DATA_HOME
 
 log = logging.getLogger(__name__)
@@ -117,7 +119,7 @@ def _list_entities(
     """
     entities = {}
     for state_path in state_path_dir.glob("*.json"):
-        entity_name = state_path.name.rstrip(".json")
+        entity_name = state_path.name.removesuffix(".json")
         entities[entity_name] = {
             "orphaned": entity_name not in known_entities,
             "encrypted": False,
@@ -148,6 +150,12 @@ class LocalStateManager(StateManager):
         "'${XDG_DATA_HOME}/certwrangler' or '~/.local/share/certwrangler' "
         "if '${XDG_DATA_HOME}' is not set",
     )
+    file_mode: FileMode = Field(
+        0o600, description="File mode to use when creating state files."
+    )
+    dir_mode: FileMode = Field(
+        0o700, description="File mode to use when creating state directories."
+    )
 
     @property
     def certs_path(self) -> Path:
@@ -170,19 +178,15 @@ class LocalStateManager(StateManager):
         :raises StateManagerError: Raised on errors creating the state directories.
         """
         try:
-            if not self.base_path.exists():
-                log.info(f"Creating directory '{self.base_path}' for state storage.")
-                self.base_path.mkdir(parents=True)
-            if not self.accounts_path.exists():
-                log.info(
-                    f"Creating directory '{self.accounts_path}' for account state storage."
-                )
-                self.accounts_path.mkdir(parents=True)
-            if not self.certs_path.exists():
-                log.info(
-                    f"Creating directory '{self.certs_path}' for cert state storage."
-                )
-                self.certs_path.mkdir(parents=True)
+            for path in (self.base_path, self.accounts_path, self.certs_path):
+                if not path.exists():
+                    log.info(f"Creating directory '{path}' for state storage.")
+                    path.mkdir(parents=True, mode=self.dir_mode)
+                if path.stat().st_mode & 0o777 != self.dir_mode:
+                    log.info(
+                        f"Setting mode for directory '{path}' to {oct(self.dir_mode)}."
+                    )
+                    path.chmod(self.dir_mode)
         except OSError as error:
             raise StateManagerError(error) from error
 
@@ -215,8 +219,13 @@ class LocalStateManager(StateManager):
         try:
             if isinstance(entity.state, AccountState):
                 state_path = self.accounts_path.joinpath(f"{entity.name}.json")
-            if isinstance(entity.state, CertState):
+            elif isinstance(entity.state, CertState):
                 state_path = self.certs_path.joinpath(f"{entity.name}.json")
+            else:
+                raise StateManagerError(
+                    f"Unable to save state of unknown type "
+                    f"'{entity.state.__class__.__name__}'."
+                )
             data = entity.state.model_dump_json(indent=4)
             if encrypt and self.encryptor:
                 data = _encrypt(
@@ -224,7 +233,11 @@ class LocalStateManager(StateManager):
                     data,
                     metadata={"Fingerprint": str(self.encryptor.fingerprint)},
                 )
-            with open(state_path, "w") as file_handler:
+            fd = os.open(
+                state_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, self.file_mode
+            )
+            with os.fdopen(fd, "w") as file_handler:
+                os.fchmod(fd, self.file_mode)
                 file_handler.write(data)
             log.debug(
                 f"{entity.__class__.__name__} '{entity.name}' state saved to '{state_path}'"
@@ -243,8 +256,13 @@ class LocalStateManager(StateManager):
         try:
             if isinstance(entity, Account):
                 state_path = self.accounts_path.joinpath(f"{entity.name}.json")
-            if isinstance(entity, Cert):
+            elif isinstance(entity, Cert):
                 state_path = self.certs_path.joinpath(f"{entity.name}.json")
+            else:
+                raise StateManagerError(
+                    f"Unable to load state of unknown type "
+                    f"'{entity.__class__.__name__}'."
+                )
             if not state_path.exists():
                 return
             state_class = type(entity.state)
@@ -278,8 +296,10 @@ class LocalStateManager(StateManager):
         """
         if entity_class == "account":
             state_path = self.accounts_path.joinpath(f"{entity_name}.json")
-        if entity_class == "cert":
+        elif entity_class == "cert":
             state_path = self.certs_path.joinpath(f"{entity_name}.json")
+        else:
+            raise StateManagerError(f"Unknown entity class '{entity_class}'.")
         try:
             if state_path.exists():
                 state_path.unlink()
