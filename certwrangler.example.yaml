@@ -37,6 +37,11 @@ state:
 
   # path: ./test_state
 
+  # Modes are octal, either unquoted (0600) or quoted ("0600"). These are the defaults:
+
+  # file_mode: "0600"
+  # dir_mode: "0700"
+
   # To enable encryption of the state you can run 'certwrangler state generate-key' and supply
   # the resulting key as the first item in the encryption_keys list:
 
@@ -87,6 +92,12 @@ stores:
   backup:
     driver: local
     path: ./test_store
+
+    # Modes are octal, either unquoted (0644) or quoted ("0644"). These are the defaults:
+
+    # cert_mode: "0644"
+    # key_mode: "0600"
+    # dir_mode: "0755"
 
 solvers:
   default:

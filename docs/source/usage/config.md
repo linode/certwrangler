@@ -244,6 +244,8 @@ Certwrangler must be configured with Vault credentials to use the Vault store. I
 
 ### Local store reference
 
+File and directory modes are interpreted as octal. Unquoted values use [YAML's octal notation](https://yaml.org/type/int.html) (`0644`), and quoted values (`"0644"`) are also accepted. A bare `600` is a decimal value and will be rejected rather than silently applied.
+
 ````{toggle}
 ```{eval-rst}
 .. autopydantic_model:: certwrangler.stores.local.LocalStore
@@ -254,6 +256,43 @@ Certwrangler must be configured with Vault credentials to use the Vault store. I
    :no-undoc-members:
    :inherited-members: BaseModel
    :exclude-members: name, initialize, publish
+   :model-erdantic-figure: False
+   :no-show-inheritance:
+   :no-private-members:
+   :field-list-validators: False
+```
+````
+
+## State storage
+
+Separately from the certs it publishes to [stores](#certificate-storage), Certwrangler keeps its own state: ACME registrations, account keys, and cert metadata. This is configured under the top-level `state` key:
+
+```yaml
+state:
+  driver: local
+  path: ./test_state
+  file_mode: "0600"
+  dir_mode: "0700"
+```
+
+The state contains your ACME account keys, so the defaults restrict it to the user Certwrangler runs as. Certwrangler will correct the mode of existing state files and directories on startup and on every save.
+
+See {doc}`the state guide </usage/state>` for state encryption and the `certwrangler state` commands.
+
+### Local state manager reference
+
+File and directory modes are interpreted as octal. Unquoted values use [YAML's octal notation](https://yaml.org/type/int.html) (`0600`), and quoted values (`"0600"`) are also accepted. A bare `600` is a decimal value and will be rejected rather than silently applied.
+
+````{toggle}
+```{eval-rst}
+.. autopydantic_model:: certwrangler.state_managers.local.LocalStateManager
+   :no-index:
+   :model-signature-prefix: state
+   :model-show-validator-summary: False
+   :model-show-field-summary: False
+   :no-undoc-members:
+   :inherited-members: BaseModel
+   :exclude-members: initialize, list, save, load, delete, encryptor, accounts_path, certs_path
    :model-erdantic-figure: False
    :no-show-inheritance:
    :no-private-members:

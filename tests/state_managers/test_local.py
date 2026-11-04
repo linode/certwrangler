@@ -180,27 +180,55 @@ class TestLocalStateManager:
             state_manager_local.certs_path.as_posix() == "/tmp/certwrangler_state/certs"
         )
 
-    def test_initialize(self, state_manager_local, mocker):
+    def test_initialize(self, state_manager_local, tmp_path):
         """
         Test that we can initialize the plugin.
         """
-        state_manager_local.base_path = mocker.MagicMock()
-        state_manager_local.base_path.exists.return_value = False
-        certs_path_mock = mocker.patch(
-            "certwrangler.state_managers.local.LocalStateManager.certs_path"
-        )
-        certs_path_mock.exists.return_value = False
-        accounts_path_mock = mocker.patch(
-            "certwrangler.state_managers.local.LocalStateManager.accounts_path"
-        )
-        accounts_path_mock.exists.return_value = False
+        state_manager_local.base_path = tmp_path.joinpath("state")
         state_manager_local.initialize()
-        state_manager_local.base_path.exists.assert_called_once()
-        state_manager_local.base_path.mkdir.assert_called_once_with(parents=True)
-        certs_path_mock.exists.assert_called_once()
-        certs_path_mock.mkdir.assert_called_once_with(parents=True)
-        accounts_path_mock.exists.assert_called_once()
-        accounts_path_mock.mkdir.assert_called_once_with(parents=True)
+        for path in (
+            state_manager_local.base_path,
+            state_manager_local.accounts_path,
+            state_manager_local.certs_path,
+        ):
+            assert path.is_dir()
+            assert path.stat().st_mode & 0o777 == 0o700
+
+    def test_initialize_custom_dir_mode(self, state_manager_local_config, tmp_path):
+        """
+        Test that we honor a configured dir_mode.
+        """
+        state_manager = LocalStateManager(
+            **{
+                **state_manager_local_config,
+                "path": str(tmp_path.joinpath("state")),
+                "dir_mode": "0750",
+            }
+        )
+        state_manager.initialize()
+        for path in (
+            state_manager.base_path,
+            state_manager.accounts_path,
+            state_manager.certs_path,
+        ):
+            assert path.stat().st_mode & 0o777 == 0o750
+
+    def test_initialize_updates_dir_mode(self, state_manager_local, tmp_path):
+        """
+        Test that we correct the mode of directories that already exist.
+        """
+        state_manager_local.base_path = tmp_path.joinpath("state")
+        paths = (
+            state_manager_local.base_path,
+            state_manager_local.accounts_path,
+            state_manager_local.certs_path,
+        )
+        for path in paths:
+            path.mkdir(parents=True)
+            path.chmod(0o755)
+        state_manager_local.initialize()
+        for path in paths:
+            assert path.stat().st_mode & 0o777 == 0o700
 
     def test_initialize_error(self, state_manager_local, mocker):
         """
@@ -261,78 +289,100 @@ class TestLocalStateManager:
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.list()
 
-    def test_save_account(self, account, state_manager_local, mocker):
+    def test_save_account(self, account, state_manager_local, tmp_path):
         """
         Test that we can save state for accounts.
         """
-        open_mock = mocker.patch(
-            "certwrangler.state_managers.local.open", mocker.mock_open()
-        )
+        state_manager_local.base_path = tmp_path.joinpath("state")
+        state_manager_local.initialize()
         account.state.key_size = 12345
         state_manager_local.save(account)
-        open_mock.assert_called_once_with(
-            Path("/tmp/certwrangler_state/accounts/test_account.json"), "w"
-        )
-        handler_mock = open_mock()
-        handler_mock.write.assert_called_once_with(
-            dedent(
+        state_path = state_manager_local.accounts_path.joinpath("test_account.json")
+        assert state_path.stat().st_mode & 0o777 == 0o600
+        assert (
+            state_path.read_text()
+            == dedent(
                 f"""
-                {{
-                    "registration": null,
-                    "key": null,
-                    "key_size": 12345,
-                    "status": "new",
-                    "_schema_version": {account.state._schema_version}
-                }}
-                """
+            {{
+                "registration": null,
+                "key": null,
+                "key_size": 12345,
+                "status": "new",
+                "_schema_version": {account.state._schema_version}
+            }}
+            """
             ).strip()
         )
 
-    def test_save_cert(self, cert, state_manager_local, mocker):
+    def test_save_cert(self, cert, state_manager_local, tmp_path):
         """
         Test that we can save state for certs.
         """
-        open_mock = mocker.patch(
-            "certwrangler.state_managers.local.open", mocker.mock_open()
-        )
+        state_manager_local.base_path = tmp_path.joinpath("state")
+        state_manager_local.initialize()
         cert.state.key_size = 12345
         state_manager_local.save(cert)
-        open_mock.assert_called_once_with(
-            Path("/tmp/certwrangler_state/certs/test_cert.json"), "w"
-        )
-        handler_mock = open_mock()
-        handler_mock.write.assert_called_once_with(
-            dedent(
+        state_path = state_manager_local.certs_path.joinpath("test_cert.json")
+        assert state_path.stat().st_mode & 0o777 == 0o600
+        assert (
+            state_path.read_text()
+            == dedent(
                 f"""
-                {{
-                    "url": null,
-                    "key": null,
-                    "key_size": 12345,
-                    "cert": null,
-                    "chain": null,
-                    "csr": null,
-                    "order": null,
-                    "status": "new",
-                    "_schema_version": {cert.state._schema_version},
-                    "fullchain": null
-                }}
-                """
+            {{
+                "url": null,
+                "key": null,
+                "key_size": 12345,
+                "cert": null,
+                "chain": null,
+                "csr": null,
+                "order": null,
+                "status": "new",
+                "_schema_version": {cert.state._schema_version},
+                "fullchain": null
+            }}
+            """
             ).strip()
         )
 
-    def test_save_encryption(self, account, state_manager_local, mocker):
+    def test_save_custom_file_mode(self, account, state_manager_local_config, tmp_path):
+        """
+        Test that we honor a configured file_mode.
+        """
+        state_manager = LocalStateManager(
+            **{
+                **state_manager_local_config,
+                "path": str(tmp_path.joinpath("state")),
+                "file_mode": "0640",
+            }
+        )
+        state_manager.initialize()
+        state_manager.save(account)
+        state_path = state_manager.accounts_path.joinpath("test_account.json")
+        assert state_path.stat().st_mode & 0o777 == 0o640
+
+    def test_save_updates_file_mode(self, account, state_manager_local, tmp_path):
+        """
+        Test that we correct the mode of a state file that already exists.
+        """
+        state_manager_local.base_path = tmp_path.joinpath("state")
+        state_manager_local.initialize()
+        state_path = state_manager_local.accounts_path.joinpath("test_account.json")
+        state_path.touch()
+        state_path.chmod(0o644)
+        state_manager_local.save(account)
+        assert state_path.stat().st_mode & 0o777 == 0o600
+
+    def test_save_encryption(self, account, state_manager_local, tmp_path, mocker):
         """
         Test that we can save state with encryption.
         """
+        state_manager_local.base_path = tmp_path.joinpath("state")
+        state_manager_local.initialize()
         account.state.key_size = 12345
         state_manager_local._encryptor = mocker.MagicMock()
         state_manager_local._encryptor.fingerprint = "no fingers"
         _encrypt_mock = mocker.patch("certwrangler.state_managers.local._encrypt")
         _encrypt_mock.return_value = "some encrypted data"
-        open_mock = mocker.patch(
-            "certwrangler.state_managers.local.open", mocker.mock_open()
-        )
-        handler_mock = open_mock()
         state_manager_local.save(account)
         _encrypt_mock.assert_called_once_with(
             state_manager_local._encryptor,
@@ -349,26 +399,30 @@ class TestLocalStateManager:
             ).strip(),
             metadata={"Fingerprint": "no fingers"},
         )
-        handler_mock.write.assert_called_once_with("some encrypted data")
+        state_path = state_manager_local.accounts_path.joinpath("test_account.json")
+        assert state_path.read_text() == "some encrypted data"
 
-    def test_save_error(self, account, cert, state_manager_local, mocker):
+    def test_save_error(self, account, cert, state_manager_local, tmp_path):
         """
         Test that we raise a StateManagerError if we run into trouble
         while saving state.
         """
-        open_mock = mocker.patch(
-            "certwrangler.state_managers.local.open", mocker.mock_open()
-        )
-        open_mock.side_effect = OSError("That broke")
-        with pytest.raises(StateManagerError, match="That broke"):
+        state_manager_local.base_path = tmp_path.joinpath("never_initialized")
+        with pytest.raises(StateManagerError, match="No such file or directory"):
             state_manager_local.save(account)
-        with pytest.raises(StateManagerError, match="That broke"):
+        with pytest.raises(StateManagerError, match="No such file or directory"):
             state_manager_local.save(cert)
-        open_mock.side_effect = OSError("Also broke")
-        with pytest.raises(StateManagerError, match="Also broke"):
-            state_manager_local.save(account)
-        with pytest.raises(StateManagerError, match="Also broke"):
-            state_manager_local.save(cert)
+
+    def test_save_unknown_state(self, state_manager_local, mocker):
+        """
+        Test that we raise a StateManagerError if we're handed an unknown state.
+        """
+        entity = mocker.MagicMock()
+        entity.state = "not a state"
+        with pytest.raises(
+            StateManagerError, match="Unable to save state of unknown type 'str'."
+        ):
+            state_manager_local.save(entity)
 
     def test_load_account(self, account, state_manager_local, mocker):
         """
@@ -546,6 +600,15 @@ class TestLocalStateManager:
         with pytest.raises(StateManagerError, match="Also broke"):
             state_manager_local.load(cert)
 
+    def test_load_unknown_entity(self, state_manager_local, mocker):
+        """
+        Test that we raise a StateManagerError if we're handed an unknown entity.
+        """
+        with pytest.raises(
+            StateManagerError, match="Unable to load state of unknown type"
+        ):
+            state_manager_local.load(mocker.MagicMock())
+
     def test_delete(self, state_manager_local, mocker):
         """
         Test that we can delete state.
@@ -567,6 +630,13 @@ class TestLocalStateManager:
         account_state_path.unlink.assert_called_once()
         state_manager_local.delete("cert", "test")
         cert_state_path.unlink.assert_called_once()
+
+    def test_delete_unknown_entity_class(self, state_manager_local):
+        """
+        Test that we raise a StateManagerError on an unknown entity class.
+        """
+        with pytest.raises(StateManagerError, match="Unknown entity class 'nope'."):
+            state_manager_local.delete("nope", "test")
 
     def test_delete_error(self, state_manager_local, mocker):
         """

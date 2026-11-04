@@ -228,3 +228,9 @@ Days = Annotated[
     ),
     PlainSerializer(lambda value: value.days),
 ]
+
+FileMode = Annotated[
+    int,
+    BeforeValidator(lambda value: int(value, 8) if isinstance(value, str) else value),
+    Field(ge=0, le=0o777),
+]
