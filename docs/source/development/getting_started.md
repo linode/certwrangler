@@ -62,6 +62,29 @@ Tip: You can use Ctrl-O to force a new line in terminal IPython
 In [1]:
 ```
 
+## Package build workflow
+
+This repository contains a [GitHub Actions workflow](/.github/workflows/build-deb.yml) to build Debian packages via [`relenv`](https://relenv.readthedocs.io/en/latest/) containing a bundled Python interpreter and locked dependencies from `uv.lock`. You can find pre-built packages on the [releases](https://github.com/linode/certwrangler/releases) page.
+
+You can build certwrangler locally using its GitHub Actions workflow via [Nektos Act](https://github.com/nektos/act). For example, to build packages for amd64:
+
+```sh
+act workflow_dispatch -W .github/workflows/build-deb.yml -j build-deb \
+  --matrix arch:amd64 -P ubuntu-24.04=catthehacker/ubuntu:act-latest \
+  --artifact-server-path .artifacts
+```
+
+You can customize the Python version that relenv builds with by setting the `RELENV_PYTHON_VERSION` build variable:
+
+```sh
+act workflow_dispatch -W .github/workflows/build-deb.yml -j build-deb \
+  --matrix arch:amd64 -P ubuntu-24.04=catthehacker/ubuntu:act-latest \
+  --var RELENV_PYTHON_VERSION=3.11.15 \
+  --artifact-server-path .artifacts
+```
+
+The version passed in must be supported both by the certwrangler project and available from relenv via [relenv fetch](https://relenv.readthedocs.io/en/latest/cli/fetch.html).
+
 ## Project layout
 
 <!--- You can generate the basis of file layout via the following command:

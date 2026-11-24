@@ -1,0 +1,40 @@
+name: Build Debian Package
+description: Builds a Debian package using nFPM
+inputs:
+  arch:
+    description: Package architecture
+    required: true
+  version:
+    description: Package version
+    required: true
+  config:
+    description: nFPM configuration file
+    default: nfpm.yaml
+runs:
+  using: composite
+  steps:
+    - name: Build package
+      shell: bash
+      env:
+        PACKAGE_ARCH: ${{ inputs.arch }}
+        PACKAGE_VERSION: ${{ inputs.version }}
+        NFPM_CONFIG: ${{ inputs.config }}
+      run: |
+        case "$PACKAGE_ARCH" in
+          amd64) nfpm_arch=x86_64 ;;
+          arm64) nfpm_arch=arm64 ;;
+          *) echo "Unsupported architecture: $PACKAGE_ARCH" >&2; exit 1 ;;
+        esac
+        nfpm_version=2.49.0
+        archive="nfpm_${nfpm_version}_Linux_${nfpm_arch}.tar.gz"
+        url="https://github.com/goreleaser/nfpm/releases/download/v${nfpm_version}"
+        mkdir -p "$RUNNER_TEMP/nfpm"
+        curl --fail --location --silent --show-error --retry 3 "$url/$archive" -o "$RUNNER_TEMP/nfpm/$archive"
+        curl --fail --location --silent --show-error --retry 3 "$url/checksums.txt" -o "$RUNNER_TEMP/nfpm/checksums.txt"
+        (
+          cd "$RUNNER_TEMP/nfpm"
+          awk -v file="$archive" '$2 == file { print }' checksums.txt | sha256sum --check --status
+          tar -xzf "$archive" nfpm
+        )
+        mkdir -p dist
+        "$RUNNER_TEMP/nfpm/nfpm" package --config "$NFPM_CONFIG" --packager deb --target dist/

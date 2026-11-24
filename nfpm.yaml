@@ -1,0 +1,16 @@
+name: certwrangler
+arch: ${PACKAGE_ARCH}
+version: ${PACKAGE_VERSION}
+maintainer: Certwrangler contributors
+description: A centralized ACME client for managing certificates.
+homepage: https://github.com/linode/certwrangler
+license: Apache-2.0
+section: admin
+contents:
+  - src: ${RELENV_DIR}
+    dst: /opt/certwrangler
+    type: tree
+    expand: true
+  - src: /opt/certwrangler/bin/certwrangler
+    dst: /usr/bin/certwrangler
+    type: symlink
