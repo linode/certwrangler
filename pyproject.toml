@@ -75,6 +75,9 @@ docs-auto = [
 gha-update = [
   "gha-update; python_full_version>='3.12'",
 ]
+packaging = [
+  "relenv",
+]
 pre-commit = [
   "pre-commit",
   "pre-commit-uv",

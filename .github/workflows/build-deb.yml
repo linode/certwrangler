@@ -1,0 +1,105 @@
+name: build-deb
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-deb:
+    name: Build Debian package (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            relenv_arch: x86_64
+            runner: ubuntu-24.04
+          - arch: arm64
+            relenv_arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Configure build paths
+        run: |
+          echo "RELENV_DIR=$RUNNER_TEMP/certwrangler-env" >> "$GITHUB_ENV"
+          echo "UV_PROJECT_ENVIRONMENT=$RUNNER_TEMP/packaging-venv" >> "$GITHUB_ENV"
+      - name: Create relocatable environment
+        env:
+          RELENV_ARCH: ${{ matrix.relenv_arch }}
+          RELENV_PYTHON_VERSION: ${{ vars.RELENV_PYTHON_VERSION || '3.10.20' }}
+        run: |
+          uv run --locked --no-default-groups --group packaging relenv fetch --arch "$RELENV_ARCH" --python "$RELENV_PYTHON_VERSION"
+          uv run --locked --no-default-groups --group packaging relenv create --arch "$RELENV_ARCH" --python "$RELENV_PYTHON_VERSION" "$RELENV_DIR"
+          uv export --locked --no-default-groups --no-emit-project --format requirements-txt --output-file "$RUNNER_TEMP/requirements.txt" --quiet
+          "$RELENV_DIR/bin/pip3" install --require-hashes --no-deps --only-binary=:all: -r "$RUNNER_TEMP/requirements.txt"
+          uv build --wheel --out-dir "$RUNNER_TEMP/wheels"
+          "$RELENV_DIR/bin/pip3" install --no-deps "$RUNNER_TEMP"/wheels/*.whl
+      - name: Determine package version
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ -n "$RELEASE_TAG" ]]; then
+            version="${RELEASE_TAG#v}"
+          else
+            version=$("$RELENV_DIR/bin/python3" -c 'from importlib.metadata import version; print(version("certwrangler"))')
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Build Debian package
+        uses: ./.github/actions/nfpm
+        with:
+          arch: ${{ matrix.arch }}
+          version: ${{ steps.version.outputs.version }}
+      - name: Test package
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          packages=(dist/*.deb)
+          test "${#packages[@]}" -eq 1
+          package="${packages[0]}"
+          test "$(dpkg-deb -f "$package" Architecture)" = "$EXPECTED_ARCH"
+          dpkg-deb -x "$package" "$RUNNER_TEMP/package-check"
+          test "$(readlink "$RUNNER_TEMP/package-check/usr/bin/certwrangler")" = /opt/certwrangler/bin/certwrangler
+          "$RUNNER_TEMP/package-check/opt/certwrangler/bin/certwrangler" --version
+          "$RUNNER_TEMP/package-check/opt/certwrangler/bin/uvicorn" --version
+          "$RUNNER_TEMP/package-check/opt/certwrangler/bin/python3" -c 'import cryptography, pydantic_core, yaml'
+      - name: Upload package artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: certwrangler-deb-${{ matrix.arch }}
+          path: dist/*.deb
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'release'
+    needs: build-deb
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: certwrangler-deb-*
+          path: dist
+          merge-multiple: true
+      - name: Attach packages to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          packages=(dist/*.deb)
+          test "${#packages[@]}" -eq 2
+          gh release upload "$RELEASE_TAG" "${packages[@]}"
